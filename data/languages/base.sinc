@@ -161,7 +161,7 @@ define context contextreg
     cM=(34,34)
     cD=(35,35)
     cT=(36,36)
-    cUpper=(37,37) noflow
+    cUpper=(37,37)
 ;
 
 # 64 bit

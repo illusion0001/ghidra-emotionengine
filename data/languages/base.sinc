@@ -113,7 +113,6 @@ define token instr(32)
     bigfunct	= (0,10)
 
 # cop2 stuff
-    full=(0,31)
     vucI=(31,31) # 1 when next instruction is loi
     vucE=(30,30) # return to micro mode after this instruction
     vucM=(29,29) # 1 to disable QMTC2/CTC2 interlock
@@ -136,6 +135,7 @@ define token instr(32)
     vufs        = (11,15)
     vuinterlock = (0,0)
     vudest      = (21,24)
+    vuco1       = (26,26)
     vuco        = (25,25)
     vubc        = (0,1)
     vufsf       = (21,22)
@@ -154,15 +154,28 @@ define token instr(32)
     vul22_24     = (22,24)
 ;
 
-define register offset=0x350 size=8 contextreg;
+define token inst_long(64)
+    vucI_L=(63,63) # 1 when next instruction is loi
+    vucE_L=(62,62) # return to micro mode after this instruction
+    vucM_L=(61,61) # 1 to disable QMTC2/CTC2 interlock
+    vucD_L=(60,60) # 1 for debug break
+    vucT_L=(59,59) # 1 for debug halt
+    vuMicro=(57,58)
+    vudest_L=(53,56)
+    vuft_L=(48,52)
+    vufs_L=(43,47)
+    vufd_L=(38,42)
+    vuop_32_37=(32,37)
+    vuop_32_42=(32,42)
+    vulop11_L=(32,42)
+    immfloat=(0,31)
+;
+
+define register offset=0x350 size=4 contextreg;
 define context contextreg
-    v1context=(0,31)
-    cI=(32,32) noflow
-    cE=(33,33)
-    cM=(34,34)
-    cD=(35,35)
-    cT=(36,36)
-    cUpper=(37,37)
+    microMode=(0,0)
+    cM=(2,2)
+    cUpper=(3,3) noflow
 ;
 
 # 64 bit

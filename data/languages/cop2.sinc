@@ -163,7 +163,7 @@ define register offset=0x4330 size=16 vuACC;
 
 #define bitrange vuR=vuR_32[0,23];
 
-attach variables [ vuft vufd vufs ] [
+attach variables [ vuft vufd vufd_qmc2 vufs vuft_L vufd_L vufs_L ] [
     vf0     vf1     vf2     vf3
     vf4     vf5     vf6     vf7
     vf8     vf9     vf10    vf11
@@ -189,9 +189,62 @@ macro ssum(src, dest) {
     dest = (src[32,32] f* src[32,32]) f+ (src[64,32] f* src[64,32]) f+ (src[96,32] f* src[96,32]);
 }
 
-vuinst: is prime=18 & vuco=1 { export 0:1; }
-vu1inst: is vuco=0 & cUpper=1 { export 0:1; }
+VI: immfloat is immfloat {tmp:4 = float2float(immfloat:4); vuI = tmp; export tmp;}
 
-VUIT:vuit is vuit { export vuit; }
+vuinst: is prime=18 & vuco=1 & microMode=0 { export 0:1; }
+
+with : microMode=1 & vuco=0 & vuco1=0 {
+    with V1E: {
+        : " [E]" is vucE=1 { delayslot(2); } # I don't know another way of getting the flow to stop
+        : is vucE=0 {}
+    }
+    with V1M: {
+        : " [M]" is vucM=1 [ cM = 1; globalset(inst_start, cM); ] {}
+        : is vucM=0 {}
+    }
+    with V1D: {
+        : " [D]" is vucD=1 { trap(); }
+        : is vucD=0 {}
+    }
+    with V1T: {
+        : " [T]" is vucT=1 { trap(); }
+        : is vucT=0 {}
+    }
+}
+
+with : microMode=1 & vuMicro=0 & cUpper=0 {
+    with V1E_L: {
+        :" [E]" is vucE_L=1 { delayslot(1); }
+        : is vucE_L=0 {}
+    }
+    with V1M_L: {
+        : " [M]" is vucM_L=1 [ cM = 1; globalset(inst_start, cM); ] {}
+        : is vucM_L=0 {}
+    }
+    with V1D_L: {
+        : " [D]" is vucD_L=1 { trap(); }
+        : is vucD_L=0 {}
+    }
+    with V1T_L: {
+        : " [T]" is vucT_L=1 { trap(); }
+        : is vucT_L=0 {}
+    }
+}
+
+VUFLAGS:^V1E^V1M^V1D^V1T is cUpper=1 & V1E & V1M & V1D & V1T [cUpper=0; globalset(inst_next, cUpper);] { build V1D; build V1T; }
+VUFLAGS_L:^V1E_L^V1M_L^V1D_L^V1T_L is V1E_L & V1M_L & V1D_L & V1T_L { build V1D_L; build V1T_L; }
+
+with VUIT: {
+    :vuit is vuit { export vuit; }
+    :vuit is vuit & vuit=0 { export 0:2; }
+}
+with VUIS: {
+    :vuis is vuis { export vuis; }
+    :vuis is vuis & vuis=0 { export 0:2; }
+}
+with VUID: {
+    :vuid is vuid { export vuid; }
+    :vuid is vuid & vuid=0 { export 0:2; }
+}
 
 VU_OFF_BASE: vusimm11(VUIT) is vusimm11 & VUIT { tmp = (VUIT + vusimm11)*16; export tmp; }

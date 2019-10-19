@@ -3,18 +3,22 @@
 <processor_spec>
     <properties>
         <property key="addressesDoNotAppearDirectlyInCode" value="true"/>
+        <property key="parallelInstructionHelperClass" value="ghidra.emotionengine.VuInstructionHelper"/>
+        <!--<property key="pcodeInjectLibraryClass" value="ghidra.emotionengine.VuPcodeInjectLibrary"/>-->
+        <property key="assemblyRating:r5900:LE:32:default" value="PLATINUM"/>
     </properties>
     <programcounter register="pc"/>
     <context_data>
         <context_set space="ram">
-            <set name="cI" val="0" description="vu I bit"/>
-            <set name="cE" val="1" description="vu E bit"/>
+            <set name="microMode" val="0" description="vu micro mode"/>
             <set name="cM" val="0" description="vu M bit"/>
-            <set name="cD" val="0" description="vu D bit"/>
-            <set name="cT" val="1" description="vu T bit"/>
+            <set name="cUpper" val="0" description="vu1 upper instruction flag"/>
         </context_set>
     </context_data>
     <register_data>
+        <register name="microMode" hidden="true"/>
+        <register name="cUpper" hidden="true"/>
+        <register name="cM" hidden="true"/>
         <register name="vf0" vector_lane_sizes="4"/>
         <register name="vf1" vector_lane_sizes="4"/>
         <register name="vf2" vector_lane_sizes="4"/>

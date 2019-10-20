@@ -85,8 +85,8 @@ define register offset=0x4300 size=4 [
     vuACCw vuACCz vuACCy vuACCx
     vuR_32 _ _ _
     vuI _ _ _
-    vuQ _ _ _
-    vuP _ _ _
+    Q _ _ _
+    P _ _ _
     vf0_flag _ _ _
     _ _ _ _
     vuTCP_32 _ _ _
@@ -189,13 +189,13 @@ macro ssum(src, dest) {
     dest = (src[32,32] f* src[32,32]) f+ (src[64,32] f* src[64,32]) f+ (src[96,32] f* src[96,32]);
 }
 
-VI: immfloat is immfloat {tmp:4 = float2float(immfloat:4); vuI = tmp; export tmp;}
+VI: immfloat is vucI_L=1 & immfloat {tmp:4 = float2float(immfloat:4); vuI = tmp; export tmp;}
 
 vuinst: is prime=18 & vuco=1 & microMode=0 { export 0:1; }
 
 with : microMode=1 & vuco=0 & vuco1=0 {
     with V1E: {
-        : " [E]" is vucE=1 { delayslot(2); } # I don't know another way of getting the flow to stop
+        : " [E]" is vucE=1 [cE=1; globalset(inst_next, cE);] { delayslot(2); return [0:4]; }
         : is vucE=0 {}
     }
     with V1M: {
@@ -214,7 +214,7 @@ with : microMode=1 & vuco=0 & vuco1=0 {
 
 with : microMode=1 & vuMicro=0 & cUpper=0 {
     with V1E_L: {
-        :" [E]" is vucE_L=1 { delayslot(1); }
+        :" [E]" is vucE_L=1 [cE=1; globalset(inst_next, cE);] { delayslot(1); return [0:4]; }
         : is vucE_L=0 {}
     }
     with V1M_L: {

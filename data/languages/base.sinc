@@ -161,6 +161,7 @@ define token inst_long(64)
     vucD_L=(60,60) # 1 for debug break
     vucT_L=(59,59) # 1 for debug halt
     vuMicro=(57,58)
+    longnop=(0,55)
     vudest_L=(53,56)
     vuft_L=(48,52)
     vufs_L=(43,47)
@@ -174,7 +175,8 @@ define token inst_long(64)
 define register offset=0x350 size=4 contextreg;
 define context contextreg
     microMode=(0,0)
-    cM=(2,2)
+    cM=(1,1)
+    cE=(2,2) noflow
     cUpper=(3,3) noflow
 ;
 
@@ -230,4 +232,4 @@ Rel11: reloc		is vusimm11	[ reloc=inst_start+8+8*vusimm11; ]					{ export *:4 re
 OFF_BASE: simmed(base)  	is simmed & base    { tmp:4 = base:4 + simmed; export tmp; }
 
 VU_IMM15: result is vuop_0_10 & vuop_21_24 [ result = (vuop_21_24 << 11) $or vuop_0_10; ] { tmp:2 = result; export tmp; }
-VU_IMM12_UP6: u6 is vuop_0_10 & vuop_21_24 [ u6=(((vuop_21_24 $and 0x1) << 6) | (vuop_0_10 >> 6)); ]{ tmp:1 = u6; export tmp; }
+VU_IMM12_UP6: u6 is vuop_0_10 & vuop_21_24 [ u6=(((vuop_21_24 $and 0x1) << 6) | (vuop_0_10 >> 6)) << 6; ]{ tmp:1 = u6; export tmp; }

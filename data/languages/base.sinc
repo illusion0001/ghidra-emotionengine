@@ -77,6 +77,7 @@ define token instr(32)
     immed       = (0,15)
     immed26     = (0,25)
     simmed      = (0,15) signed
+    imm15       = (6,20)
 
     off21		= (0,20) signed		# 21 bit signed offset in conditional branch/link
     off16		= (0,15) signed		# 16 bit signed offset in conditional branch/link
@@ -86,6 +87,10 @@ define token instr(32)
     fct         = (0,5)
     mmiop       = (6,10)
     fmt         = (6,10)
+    
+    ft128       = (16,20)
+    fd128       = (11,15)
+    fs128       = (11,15)
 
 # cop stuff
 	bit25		= (25,25)
@@ -113,46 +118,71 @@ define token instr(32)
     bigfunct	= (0,10)
 
 # cop2 stuff
-    co          = (25,25)
-    dest        = (21,24)
-    id          = (11,15)
-    ft128       = (16,20)
-    fs128       = (11,15)
-    fd128       = (6,10)
+    vucI=(31,31) # 1 when next instruction is loi
+    vucE=(30,30) # return to micro mode after this instruction
+    vucM=(29,29) # 1 to disable QMTC2/CTC2 interlock
+    vucD=(28,28) # 1 for debug break
+    vucT=(27,27) # 1 for debug halt
+    vuoffset    = (0,15)
+    vuop_0_5    = (0,5)
+    vuop_0_10   = (0,10)
+    vuop_1_10   = (1,10)
+    vuop_2_5    = (2,5)
+    vuop_2_10   = (2,10)
+    vuop_21_25  = (21,25)
+    vuop_21_24   = (21,24)
+    vuop_16_20  = (16,20)
+    vurt        = (16,20)
+    vuft        = (16,20)
+    vufd        = (6,10)
+    vufd_qmc2   = (11,15)
+    vuccid      = (11,15)
+    vufs        = (11,15)
+    vuinterlock = (0,0)
+    vudest      = (21,24)
+    vuco1       = (26,26)
+    vuco        = (25,25)
+    vubc        = (0,1)
+    vufsf       = (21,22)
+    vuftf       = (23,24)
+    vuit        = (16,20)
+    vuis        = (11,15)
+    vuid        = (6,10)
+    vuimm5       = (6,10) signed
+    vusimm11     = (0,10) signed
+    vuimm24      = (0,23)
+    vuimm12      = (0,10)
+    vulop7       = (25,31)
+    vulop11      = (0,10)
+    vulop6       = (0,5)
+    vul24        = (24,24)
+    vul22_24     = (22,24)
+;
 
-    ftw128       = (16,20)
-    ftx128       = (16,20)
-    fty128       = (16,20)
-    ftz128       = (16,20)
+define token inst_long(64)
+    vucI_L=(63,63) # 1 when next instruction is loi
+    vucE_L=(62,62) # return to micro mode after this instruction
+    vucM_L=(61,61) # 1 to disable QMTC2/CTC2 interlock
+    vucD_L=(60,60) # 1 for debug break
+    vucT_L=(59,59) # 1 for debug halt
+    vuMicro=(57,58)
+    longnop=(0,55)
+    vudest_L=(53,56)
+    vuft_L=(48,52)
+    vufs_L=(43,47)
+    vufd_L=(38,42)
+    vuop_32_37=(32,37)
+    vuop_32_42=(32,42)
+    vulop11_L=(32,42)
+    immfloat=(0,31)
+;
 
-    fsw128       = (11,15)
-    fsx128       = (11,15)
-    fsy128       = (11,15)
-    fsz128       = (11,15)
-
-    fdw128       = (6,10)
-    fdx128       = (6,10)
-    fdy128       = (6,10)
-    fdz128       = (6,10)
-
-    bit15       = (15,15)
-    cop2op0     = (2,5)
-    cop2op1     = (0,5)
-    cop2op2     = (2,10)
-    cop2op3     = (0,10)
-    cop2op4     = (0,10)
-    cop2op5     = (0,5)
-    cop2op6     = (0,5)
-    cop2op11    = (21,25)
-    cop2op12    = (26,31)
-    imm15       = (6,20)
-    imm5        = (6,10)
-    ftf         = (23,24)
-    fsf         = (20,21)
-    cop2zero10  = (1,10)
-
-    mmimmed     = (6,20)
-
+define register offset=0x350 size=4 contextreg;
+define context contextreg
+    microMode=(0,0)
+    cM=(1,1)
+    cE=(2,2) noflow
+    cUpper=(3,3) noflow
 ;
 
 # 64 bit
@@ -216,5 +246,9 @@ RTUDWsrc: rt   	is rt & rtudw=0      { export 0:8; }
 # relative offsets
 Rel16: reloc		is off16	[ reloc=inst_start+4+4*off16; ]					{ export *:4 reloc; }
 Abs26: reloc		is ind26	[ reloc=((inst_start+4) $and 0xfffffffff0000000) | 4*ind26; ]	{ export *:4 reloc; }
+Rel11: reloc		is vusimm11	[ reloc=inst_start+8+8*vusimm11; ]					{ export *:4 reloc; }
 
 OFF_BASE: simmed(base)  	is simmed & base    { tmp:4 = base:4 + simmed; export tmp; }
+
+VU_IMM15: result is vuop_0_10 & vuop_21_24 [ result = (vuop_21_24 << 11) $or vuop_0_10; ] { tmp:2 = result; export tmp; }
+VU_IMM12_UP6: u6 is vuop_0_10 & vuop_21_24 [ u6=(((vuop_21_24 $and 0x1) << 6) | (vuop_0_10 >> 6)) << 6; ]{ tmp:1 = u6; export tmp; }

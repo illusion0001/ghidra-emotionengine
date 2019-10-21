@@ -20,7 +20,7 @@ macro setMax(dest,srcRS,srcRT) {
 macro clampWord(dest, src){
     if (src s> 0x7FFF) goto <satMax>;
     if (src s< 0xFFFF8000) goto <satMin>;
-    dest = src;
+    dest = src:2;
     goto <end>;
     <satMax>
     dest = 0x7FFF;
@@ -63,10 +63,10 @@ macro multToSignedWord(dest, src1, src2){
 
 macro uSatByte(dest, src){
     if (src > 0xFF) goto <max>;
-    dest[0,1] = src[0,1];
+    dest = src;
     goto <end>;
     <max>
-    dest[0,1] = 0xFF;
+    dest = 0xFF;
     <end>
 }
 
@@ -91,13 +91,13 @@ macro uSatWord(dest, src){
 macro sSatByte(dest, src){
     if (src > 0x7F) goto <max>;
     if (0x100 <= src && src < 0x180) goto <min>;
-    dest[0,1] = src[0,1];
+    dest = src;
     goto <end>;
     <max>
-    dest[0,1] = 0x7F;
+    dest = 0x7F;
     goto <end>;
     <min>
-    dest[0,1] = 0x80;
+    dest = 0x80;
     <end>
 }
 
@@ -143,4 +143,22 @@ macro pGreaterThan(dest, src1, src2){
     <true>
     dest = -1;
     <end>
+}
+
+macro pack5(dest, src){
+    tmp:4 = 0;
+    tmp[0,5] = src[3,5];
+    tmp[5,5] = src[11,5];
+    tmp[10,5] = src[19,5];
+    tmp[15,1] = src[31,1];
+    dest = tmp;
+}
+
+macro unpack5(dest, src){
+    tmp:4 = 0;
+    tmp[3,5] = src[0,5];
+    tmp[11,5] = src[5,5];
+    tmp[19,5] = src[10,5];
+    tmp[31,1] = src[15,1];
+    dest = tmp;
 }

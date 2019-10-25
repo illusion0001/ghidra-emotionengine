@@ -267,7 +267,7 @@ with : microMode=1 & cUpper=0 {
         *[register]:3 vuR_32 = tmp[0,23] ^ fsf[0,23];
     }
 
-    :"sqrt" Q, vuft^ftf is Q & vufsf=0 & vufs=0 & VUIS & vusimm11 & vulop7=0x40 & vulop11=0x3bd & vuft & ftf [cUpper=1; globalset(inst_next, cUpper);] {
+    :"sqrt" Q, vuft^ftf is Q & vufsf=0 & VUIS & vusimm11 & vulop7=0x40 & vulop11=0x3bd & vuft & ftf [cUpper=1; globalset(inst_next, cUpper);] {
         build ftf;
         Q = sqrt(abs(ftf));
     }

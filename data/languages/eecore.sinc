@@ -10,12 +10,18 @@ define register offset=0x400 size=8 [ fsa ];       # 64 bit
 
 # 0111 10bb bbbt tttt iiii iiii iiii iiii
 :lq RT128, OFF_BASE    is microMode=0 & prime=30 & OFF_BASE & RT128 {
-    RT128 = *OFF_BASE;
+    RT128[0,32] = *:4 OFF_BASE;
+	RT128[32,32] = *:4 (OFF_BASE+4);
+	RT128[64,32] = *:4 (OFF_BASE+8);
+	RT128[96,32] = *:4 (OFF_BASE+12);
 }
 
 # 0111 11bb bbbt tttt iiii iiii iiii iiii
 :sq RT128src, OFF_BASE    is microMode=0 & prime=31 & OFF_BASE & RT128src {
-    *[ram] OFF_BASE = RT128src;
+    *:4 OFF_BASE = RT128src[0,32];
+	*:4 (OFF_BASE+4) = RT128src[32,32];
+	*:4 (OFF_BASE+8) = RT128src[64,32];
+	*:4 (OFF_BASE+12) = RT128src[96,32];
 }
 
 :mfsa RD        is microMode=0 & prime=0 & RD & rs=0 & rt=0 & fct=40 {
@@ -192,32 +198,38 @@ with : prime=28 {
 
     # special case of paddub, move quad word
     :moveq RD128, RS128src    is microMode=0 & RS128src & RD128 & rt=0 & mmiop=24 & fct=40 {
-        RD128 = RS128src;
+        RD128[0,64] = RS128src[0,64];
+        RD128[64,64] = RS128src[64,64];
     }
 
     # special case of padduw
     :moveq RD128, RS128src    is microMode=0 & RS128src & RD128 & rt=0 & mmiop=16 & fct=40 {
-        RD128 = RS128src;
+        RD128[0,64] = RS128src[0,64];
+        RD128[64,64] = RS128src[64,64];
     }
 
     # special case of paddb
     :moveq RD128, RS128src    is microMode=0 & RD128 & RS128src & rt=0 & mmiop=8 & fct=8 {
-        RD128 = RS128src;
+        RD128[0,64] = RS128src[0,64];
+        RD128[64,64] = RS128src[64,64];
     }
 
     # special case of paddh
     :moveq RD128, RS128src    is microMode=0 & RD128 & RS128src & rt=0 & mmiop=4 & fct=8 {
-        RD128 = RS128src;
+        RD128[0,64] = RS128src[0,64];
+        RD128[64,64] = RS128src[64,64];
     }
 
     # special case of paddw
     :moveq RD128, RS128src    is microMode=0 & RD128 & RS128src & rt=0 & mmiop=0 & fct=0x8 {
-        RD128 = RS128src;
+        RD128[0,64] = RS128src[0,64];
+        RD128[64,64] = RS128src[64,64];
     }
     
     # special case of por
     :moveq RD128, RS128src    is microMode=0 & RD128 & RS128src & rt=0 & mmiop=0x12 & fct=0x29 {
-        RD128 = RS128src;
+        RD128[0,64] = RS128src[0,64];
+        RD128[64,64] = RS128src[64,64];
     }
 
     # Special Case

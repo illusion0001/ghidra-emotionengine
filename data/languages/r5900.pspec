@@ -8,7 +8,7 @@
         <property key="enableSharedReturnAnalysis" value="true"/>
         <property key="useNewFunctionStackAnalysis" value="true"/>
         <property key="parallelInstructionHelperClass" value="ghidra.emotionengine.VuInstructionHelper"/>
-        <!--<property key="pcodeInjectLibraryClass" value="ghidra.app.util.pcodeInject.PcodeInjectLibraryMIPSR5900"/>-->
+        <property key="pcodeInjectLibraryClass" value="ghidra.emotionengine.PcodeInjectLibraryVu"/>
         <property key="assemblyRating:r5900:LE:32:default" value="PLATINUM"/>
     </properties>
     <programcounter register="pc"/>

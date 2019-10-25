@@ -1,0 +1,120 @@
+package ghidra.emotionengine;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
+import ghidra.app.plugin.processors.sleigh.SleighLanguage;
+import ghidra.app.plugin.processors.sleigh.template.OpTpl;
+import ghidra.pcodeCPort.slgh_compile.PcodeParser;
+import ghidra.program.model.lang.InjectPayload;
+import ghidra.program.model.lang.InjectPayloadSleigh;
+import ghidra.program.model.lang.PcodeInjectLibrary;
+import ghidra.program.model.listing.Program;
+
+import org.jdom.JDOMException;
+
+public class PcodeInjectLibraryVu extends PcodeInjectLibrary {
+
+    private PcodeParser parser;
+    private SleighLanguage language;
+
+    // vector
+    protected static final String VABS = "VABS";
+    protected static final String VADD = "VADD";
+    protected static final String VADDBC = "VADDBC";
+    protected static final String VMADD = "VMADD";
+    protected static final String VMADDBC = "VMADDBC";
+    protected static final String VSUB = "VSUB";
+    protected static final String VSUBBC = "VSUBBC";
+    protected static final String VMSUB = "VMSUB";
+    protected static final String VMSUBBC = "VMSUBBC";
+    protected static final String VMUL = "VMUL";
+    protected static final String VMULBC = "VMULBC";
+    protected static final String VFTOI0 = "VFTOI0";
+    protected static final String VFTOI = "VFTOI";
+    protected static final String VITOF = "VITOF";
+
+    // mmi
+    protected static final String LQ = "LQ";
+    protected static final String SQ = "SQ";
+
+    protected static final Set<String> VECTOR_INSTRUCTIONS = Collections.unmodifiableSet(
+        getVectorInstructions());
+    protected static final Set<String> MMI_INSTRUCTIONS = Collections.unmodifiableSet(
+        getMmiInstructions());
+
+    public PcodeInjectLibraryVu(SleighLanguage l) {
+        super(l);
+        language = l;
+        String translateSpec = l.buildTranslatorTag(l.getAddressFactory(),
+			getUniqueBase(), l.getSymbolTable());
+		parser = null;
+		try {
+			parser = new PcodeParser(translateSpec);
+		}
+		catch (JDOMException e1) {
+			e1.printStackTrace();
+		}
+    }
+
+    private static Set<String> getVectorInstructions() {
+        Set<String> instructions = new HashSet<>(14);
+        instructions.add(VABS);
+        instructions.add(VADD);
+        instructions.add(VADDBC);
+        instructions.add(VMADD);
+        instructions.add(VMADDBC);
+        instructions.add(VFTOI0);
+        instructions.add(VFTOI);
+        instructions.add(VITOF);
+        instructions.add(VSUB);
+        instructions.add(VSUBBC);
+        instructions.add(VMSUB);
+        instructions.add(VMSUBBC);
+        instructions.add(VMUL);
+        instructions.add(VMULBC);
+        return instructions;
+    }
+
+    private static Set<String> getMmiInstructions() {
+        Set<String> instructions = new HashSet<>(2);
+        instructions.add(LQ);
+        instructions.add(SQ);
+        return instructions;
+    }
+
+    @Override
+	protected InjectPayloadSleigh allocateInject(String sourceName, String name, int tp) {
+		if (tp != InjectPayload.CALLOTHERFIXUP_TYPE) {
+			return super.allocateInject(sourceName, name, tp);
+		}
+        if (VECTOR_INSTRUCTIONS.contains(name)) {
+            return new InjectPayloadVu(sourceName, language);
+		}
+		return super.allocateInject(sourceName, name, InjectPayload.CALLOTHERFIXUP_TYPE);
+    }
+
+    @Override
+	/**
+	* This method is called by DecompileCallback.getPcodeInject.
+	*/
+	public InjectPayload getPayload(int type, String name, Program program, String context) {
+		if (!VECTOR_INSTRUCTIONS.contains(name)) {
+			return super.getPayload(type, name, program, context);
+		}
+
+		InjectPayloadVu payload =
+			(InjectPayloadVu) super.getPayload(InjectPayload.CALLOTHERFIXUP_TYPE, name, program,
+				context);
+
+		synchronized (parser) {
+			OpTpl[] opTemplates = payload.getPcode(parser, program, context);
+			adjustUniqueBase(opTemplates);
+			//clear the added symbols so that the parser can be used again without
+			//duplicate symbol name conflicts.
+			parser.clearSymbols();
+		}
+		return payload;
+	}
+}

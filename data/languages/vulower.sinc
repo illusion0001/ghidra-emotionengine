@@ -1,6 +1,5 @@
 # VU lower instructions
 
-@define BASE_ADDRESS 0x11008000
 define pcodeop sin;
 define pcodeop arctan;
 define pcodeop exp;
@@ -31,13 +30,13 @@ with : microMode=1 & cUpper=0 {
         :jalr VUIT, VUIS is vudest & vusimm11 & vulop7=0x25 & VUIT & VUIS [cUpper=1; globalset(inst_next, cUpper);] {
             VUIT = inst_start+16;
             delayslot(3);
-            tmp:4 = $(BASE_ADDRESS) + zext(VUIS*8);
+            tmp:4 = $(BASE_CODE_ADDRESS) + zext(VUIS*8);
             call [tmp];
         }
 
         :jr VUIS is vudest & VUIT & vusimm11 & vulop7=0x24 & VUIS [cUpper=1; globalset(inst_next, cUpper);] {
             delayslot(3);
-            tmp:4 = $(BASE_ADDRESS) + zext(VUIS*8);
+            tmp:4 = $(BASE_CODE_ADDRESS) + zext(VUIS*8);
             goto [tmp];
         }
 
@@ -57,25 +56,53 @@ with : microMode=1 & cUpper=0 {
 
         :ibne VUIT, VUIS, Rel11 is vudest=0 & vulop7=0x29 & VUIT & VUIS & Rel11 [cUpper=1; globalset(inst_next, cUpper);] {}
 
-        :ilw^dest VUIT, vusimm11, VUIS is vulop7=0x4 & VUIT & vusimm11 & VUIS & dest [cUpper=1; globalset(inst_next, cUpper);] {}
+        :ilw^sdest VUIT, VU_SDEST is vulop7=0x4 & VUIT & VU_SDEST & sdest [cUpper=1; globalset(inst_next, cUpper);] {
+            VUIT = *:4 ($(BASE_DATA_ADDRESS)+VU_SDEST);
+        }
 
-        :ilwr^dest VUIT, VUIS is vusimm11 & vulop7=0x40 & vulop11=0x3fe & VUIT & VUIS & dest [cUpper=1; globalset(inst_next, cUpper);] {}
+        :ilwr^sdest VUIT, VU_SDEST is vusimm11 & vulop7=0x40 & vulop11=0x3fe & VUIT & VU_SDEST & sdest [cUpper=1; globalset(inst_next, cUpper);] {
+            VUIT = *:4 ($(BASE_DATA_ADDRESS)+VU_SDEST);
+        }
 
-        :isw^dest VUIT, vusimm11, VUIS is vulop7=0x5 & VUIT & vusimm11 & VUIS & dest [cUpper=1; globalset(inst_next, cUpper);] {}
+        :isw^sdest VUIT, vusimm11, VU_SDEST is vulop7=0x5 & VUIT & vusimm11 & VU_SDEST & sdest [cUpper=1; globalset(inst_next, cUpper);] {
+            *:4 ($(BASE_DATA_ADDRESS)+VU_SDEST) = VUIT;
+        }
 
-        :iswr^dest VUIT, VUIS is vusimm11 & vulop7=0x40 & vulop11=0x3ff & VUIT & VUIS & dest [cUpper=1; globalset(inst_next, cUpper);] {}
+        :iswr^sdest VUIT, VU_SDEST is vulop7=0x40 & vulop11=0x3ff & VUIT & VU_SDEST & sdest [cUpper=1; globalset(inst_next, cUpper);] {
+            *:4 ($(BASE_DATA_ADDRESS)+VU_SDEST) = VUIT;
+        }
 
-        :lq^dest vuft, vusimm11, VUIS is vulop7=0x0 & vuft & vusimm11 & VUIS & dest [cUpper=1; globalset(inst_next, cUpper);] {}
+        :lq^dest vuft, VU_OFF_BASE_IS is vulop7=0x0 & vuft & VU_OFF_BASE_IS & dest [cUpper=1; globalset(inst_next, cUpper);] {
+            vuft = VULQ(dest, $(BASE_DATA_ADDRESS)+VU_OFF_BASE_IS);
+        }
 
-        :lqd^dest vuft, VUIS is vusimm11 & vulop7=0x40 & vulop11=0x37e & vuft & VUIS & dest [cUpper=1; globalset(inst_next, cUpper);] {}
+        :lqd^dest vuft, (--VUIS) is vusimm11 & vulop7=0x40 & vulop11=0x37e & vuft & VUIS & dest [cUpper=1; globalset(inst_next, cUpper);] {
+            VUIS = VUIS - 1;
+            offset:4 = $(BASE_DATA_ADDRESS)+zext(VUIS*16);
+            vuft = VULQ(dest, offset);
+        }
 
-        :lqi^dest vuft, VUIS is vusimm11 & vulop7=0x40 & vulop11=0x37c & vuft & VUIS & dest [cUpper=1; globalset(inst_next, cUpper);] {}
+        :lqi^dest vuft, (VUIS++) is vulop7=0x40 & vulop11=0x37c & vuft & VUIS & dest [cUpper=1; globalset(inst_next, cUpper);] {
+            offset:4 = $(BASE_DATA_ADDRESS)+zext(VUIS*16);
+            vuft = VULQ(dest, offset);
+            VUIS = VUIS + 1;
+        }
         
-        :sq^dest vufs, VU_OFF_BASE is vulop7=0x1 & vufs & VU_OFF_BASE & dest [cUpper=1; globalset(inst_next, cUpper);] {}
+        :sq^dest vufs, VU_OFF_BASE_IT is vulop7=0x1 & vufs & VU_OFF_BASE_IT & dest [cUpper=1; globalset(inst_next, cUpper);] {
+            VUSQ(dest, $(BASE_DATA_ADDRESS)+VU_OFF_BASE_IT, vufs);
+        }
 
-        :sqd^dest vufs, VUIT is vusimm11 & vulop7=0x40 & vulop11=0x37f & vufs & VUIT & dest [cUpper=1; globalset(inst_next, cUpper);] {}
+        :sqd^dest vufs, (--VUIT) is vusimm11 & vulop7=0x40 & vulop11=0x37f & vufs & VUIT & dest [cUpper=1; globalset(inst_next, cUpper);] {
+            VUIT = VUIT - 1;
+            offset:4 = $(BASE_DATA_ADDRESS)+zext(VUIT*16);
+            VUSQ(dest, offset, vufs);
+        }
 
-        :sqi^dest vufs, VUIT is vusimm11 & vulop7=0x40 & vulop11=0x37d & vufs & VUIT & dest [cUpper=1; globalset(inst_next, cUpper);] {}
+        :sqi^dest vufs, (VUIT++) is vulop7=0x40 & vulop11=0x37d & vufs & VUIT & dest [cUpper=1; globalset(inst_next, cUpper);] {
+            offset:4 = $(BASE_DATA_ADDRESS)+zext(VUIT*16);
+            VUSQ(dest, offset, vufs);
+            VUIT = VUIT + 1;
+        }
 
         :xgkick VUIS is vudest=0 & vuft=0 & vusimm11 & vulop7=0x40 & vulop11=0x6fc & VUIS [cUpper=1; globalset(inst_next, cUpper);] {}
 
@@ -234,15 +261,24 @@ with : microMode=1 & cUpper=0 {
         VUIT = VUIS - vuop_0_10;
     }
 
-    :mfir^dest vuft, VUIS is vusimm11 & vulop7=0x40 & vulop11=0x3fd & vuft & VUIS & dest [cUpper=1; globalset(inst_next, cUpper);] {}
+    :mfir^dest vuft, vuis is vusimm11 & vulop7=0x40 & vulop11=0x3fd & vuft & vuis & dest [cUpper=1; globalset(inst_next, cUpper);] {
+        vuft = VMFIR(dest, vuis);
+    }
 
-    :mfp^dest vuft, P is P & VUIS & vusimm11 & vulop7=0x40 & vulop11=0x67c & vuft & dest [cUpper=1; globalset(inst_next, cUpper);] {}
+    :mfp^dest vuft, P is P & VUIS & vusimm11 & vulop7=0x40 & vulop11=0x67c & vuft & dest [cUpper=1; globalset(inst_next, cUpper);] {
+        vuft = VMOVEBC(dest, P);
+    }
 
-    :move^dest vuft, vufs is vusimm11 & vulop7=0x40 & vulop11=0x33c & vuft & vufs & dest [cUpper=1; globalset(inst_next, cUpper);] {}
+    :move^dest vuft, vufs is vusimm11 & vulop7=0x40 & vulop11=0x33c & vuft & vufs & dest [cUpper=1; globalset(inst_next, cUpper);] {
+        vuft = VMOVE(dest, vufs);
+    }
 
-    :mr32^dest vuft, vufs is vusimm11 & vulop7=0x40 & vulop11=0x33d & vuft & vufs & dest [cUpper=1; globalset(inst_next, cUpper);] {}
+    :mr32^dest vuft, vufs is vusimm11 & vulop7=0x40 & vulop11=0x33d & vuft & vufs & dest [cUpper=1; globalset(inst_next, cUpper);] {
+        vuft = VMR32(dest, vufs);
+    }
 
     :mtir VUIT, vufs^fsf is vuftf=0 & vulop7=0x40 & vulop11=0x3fc & VUIT & vufs & fsf [cUpper=1; globalset(inst_next, cUpper);] {
+        build fsf;
         VUIT = fsf:2;
     }
 

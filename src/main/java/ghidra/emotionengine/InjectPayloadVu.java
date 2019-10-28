@@ -1,9 +1,34 @@
+/* ###
+ * IP: GHIDRA
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+ // InjectPayloadJava modified for use with ghidra-emotionengine
+
 package ghidra.emotionengine;
 
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import org.xml.sax.*;
+
+import generic.stl.Pair;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.BiFunction;
 
 import ghidra.app.plugin.processors.sleigh.SleighException;
 import ghidra.app.plugin.processors.sleigh.SleighLanguage;
@@ -23,9 +48,19 @@ public class InjectPayloadVu extends InjectPayloadCallother {
     private SleighLanguage language;
     private SAXParser saxParser;
 
-    private static final String FLOAT_ADD = "f+";
-	private static final String FLOAT_SUB = "f-";
-	private static final String FLOAT_MUL = "f*";
+	private static final String FLOAT_ADD = " f+ ";
+	private static final String INT_ADD = " + ";
+	private static final String FLOAT_SUB = " f- ";
+	private static final String FLOAT_MUL = " f* ";
+	private static final String FLOAT_GREATER_THAN = " f> ";
+	private static final String FLOAT_LESS_THAN = " f< ";
+	private static final String ASSIGNMENT = " = ";
+	private static final String GOTO = " goto ";
+	private static final String IF = "if (";
+	private static final String MAX = "<max";
+	private static final String MIN = "<min";
+	private static final String END = "<end";
+	private static final String SEXT = "sext(";
     private static final String ABS = "abs";
     private static final String FLOAT2FLOAT = "float2float";
     private static final String INT2FLOAT = "int2float";
@@ -35,14 +70,22 @@ public class InjectPayloadVu extends InjectPayloadCallother {
     private static final String VUFD = "VUFD";
     private static final String VUFS = "VUFS";
 	private static final String VUFT = "VUFT";
+	private static final String VUIS = "VUIS";
 	private static final String VUACC = "vuACC";
+
+	private static final String ADDRESS = "addr";
+	private static final String FLOAT_POINTER = "*:4 ";
+	private static final String BROADCAST = "BC";
 
     private static final String[] VECTOR_DIRECTIONS = new String[]{
         "[96,32]",
         "[64,32]",
         "[32,32]",
         "[0,32]"
-    };
+	};
+	
+	private static final Map<String, Pair<BiFunction<Long, String, String>, String>>
+		INSTRUCTIONS = getInstructionMap();
 
     public InjectPayloadVu(String sourceName, SleighLanguage language) {
 		super(sourceName);
@@ -74,7 +117,6 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 		return injectContext;
 	}
 
-	//from DecompileCallback.java
 	private static SAXParser getSAXParser() throws PcodeXMLException {
 		try {
 			SAXParserFactory saxParserFactory = XmlUtilities.createSecureSAXParserFactory(false);
@@ -88,17 +130,10 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 		}
 	}
 
-	/**
-	 * This method is used to generate and compile pcode for a given
-	 * callotherfixup.
-	 * 
-	 * @param parser Used to parse pcode.
-	 * @param program The program containing the callotherfixup
-	 * @param context The context of the callotherfixup.
-	 * @return An array of OpTpl (for passing to
-	 *         PcodeInjectLibrary.adjustUniqueBase)
-	 */
 	public OpTpl[] getPcode(PcodeParser parser, Program program, String context) {
+		if (!INSTRUCTIONS.containsKey(getName())) {
+			return new OpTpl[0];
+		}
 		String sourceName = getSource();
 		Location loc = new Location(sourceName, 1);
 
@@ -110,8 +145,9 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 		for (InjectParameter element : output) {
 			parser.addOperand(loc, element.getName(), element.getIndex());
 		}
-        InjectContext injectContext = getInjectContext(program, context);
-		String pcodeText = getPcodeText(injectContext.inputlist.get(0).getOffset());
+		InjectContext injectContext = getInjectContext(program, context);
+		BiFunction<Long, String, String> function = INSTRUCTIONS.get(getName()).first;
+		String pcodeText = function.apply(injectContext.inputlist.get(0).getOffset(), getName());
 		String constructTplXml =
 			PcodeParser.stringifyTemplate(parser.compilePcode(pcodeText, sourceName, 1));
 		if (constructTplXml == null) {
@@ -158,114 +194,327 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 		return opTemplates;
     }
 
-    private String getOperationText1(long dest, String operation,
-        String output, String input) {
-            StringBuilder builder = new StringBuilder();
-            for(int i = 0; i < 4; i++) {
-                if (((dest >> i) & 1) == 1) {
-                    builder.append(output);
-                    builder.append(VECTOR_DIRECTIONS[i]);
-                    builder.append(' ');
-                    builder.append('=');
-                    builder.append(' ');
-                    builder.append(operation);
-                    builder.append('(');
-                    builder.append(input);
-                    builder.append(VECTOR_DIRECTIONS[i]);
-                    builder.append(')');
-                    builder.append(END_LINE);
-                }
-            }
-            return builder.toString();
+    private static String getOperationText1(long dest, String name) {
+		StringBuilder builder = new StringBuilder();
+		String operation = INSTRUCTIONS.get(name).second;
+		for(int i = 0; i < 4; i++) {
+			if (((dest >> i) & 1) == 1) {
+				builder.append(VUFT)
+				.append(VECTOR_DIRECTIONS[i])
+				.append(ASSIGNMENT)
+				.append(operation)
+				.append('(')
+				.append(VUFS)
+				.append(VECTOR_DIRECTIONS[i])
+				.append(')')
+				.append(END_LINE);
+			}
+		}
+		return builder.toString();
 	}
 
-    private String getOperationText3(long dest, String operation,
-        String output, String input1, String input2, boolean broadcast) {
+    private static String getOperationText3(long dest, String name) {
+		StringBuilder builder = new StringBuilder();
+		boolean broadcast = name.endsWith(BROADCAST);
+		String operation = INSTRUCTIONS.get(name).second;
+		for(int i = 0; i < 4; i++) {
+			if (((dest >> i) & 1) == 1) {
+				builder.append(VUFD)
+				.append(VECTOR_DIRECTIONS[i])
+				.append(ASSIGNMENT)
+				.append(VUFS)
+				.append(VECTOR_DIRECTIONS[i])
+				.append(operation)
+				.append(VUFT);
+				if (!broadcast) {
+					builder.append(VECTOR_DIRECTIONS[i]);
+				}
+				builder.append(END_LINE);
+			}
+		}
+		return builder.toString();
+	}
+	
+	private static String getMultiplyOperationText3(long dest, String name) {
+		StringBuilder builder = new StringBuilder();
+		boolean broadcast = name.endsWith(BROADCAST);
+		String operation = INSTRUCTIONS.get(name).second;
+		for(int i = 0; i < 4; i++) {
+			if (((dest >> i) & 1) == 1) {
+				builder.append(VUFD)
+				.append(VECTOR_DIRECTIONS[i])
+				.append(ASSIGNMENT)
+				.append(VUACC)
+				.append(VECTOR_DIRECTIONS[i])
+				.append(operation)
+				.append(VUFS)
+				.append(VECTOR_DIRECTIONS[i])
+				.append(FLOAT_MUL)
+				.append(VUFT);
+				if (!broadcast) {
+					builder.append(VECTOR_DIRECTIONS[i]);
+				}
+				builder.append(END_LINE);
+			}
+		}
+		return builder.toString();
+	}
+	
+	private static String getLoadText(long dest, String name) {
             StringBuilder builder = new StringBuilder();
             for(int i = 0; i < 4; i++) {
                 if (((dest >> i) & 1) == 1) {
-                    builder.append(output);
-                    builder.append(VECTOR_DIRECTIONS[i]);
-                    builder.append(' ');
-                    builder.append('=');
-                    builder.append(' ');
-                    builder.append(input1);
-                    builder.append(VECTOR_DIRECTIONS[i]);
-                    builder.append(' ');
-                    builder.append(operation);
-                    builder.append(' ');
-					builder.append(input2);
-					if (!broadcast) {
-						builder.append(VECTOR_DIRECTIONS[i]);
-					}
-                    builder.append(END_LINE);
+                    builder.append(VUFT)
+                    .append(VECTOR_DIRECTIONS[i])
+                    .append(ASSIGNMENT)
+					.append(FLOAT_POINTER)
+					.append('(')
+					.append(ADDRESS)
+					.append(INT_ADD)
+					.append(Integer.toString(4*i))
+					.append(')')
+					.append(END_LINE);
                 }
             }
             return builder.toString();
 	}
 	
-	private String getMultiplyOperationText3(long dest, String operation,
-        String output, String input1, String input2, boolean broadcast) {
-            StringBuilder builder = new StringBuilder();
-            for(int i = 0; i < 4; i++) {
-                if (((dest >> i) & 1) == 1) {
-                    builder.append(output);
-                    builder.append(VECTOR_DIRECTIONS[i]);
-                    builder.append(' ');
-                    builder.append('=');
-					builder.append(' ');
-					builder.append(VUACC);
-					builder.append(VECTOR_DIRECTIONS[i]);
-					builder.append(' ');
-					builder.append(operation);
-					builder.append(' ');
-                    builder.append(input1);
-                    builder.append(VECTOR_DIRECTIONS[i]);
-                    builder.append(' ');
-                    builder.append(FLOAT_MUL);
-                    builder.append(' ');
-					builder.append(input2);
-					if (!broadcast) {
-						builder.append(VECTOR_DIRECTIONS[i]);
-					}
-                    builder.append(END_LINE);
-                }
-            }
-            return builder.toString();
-    }
+	private static String getStoreText(long dest, String name) {
+		StringBuilder builder = new StringBuilder();
+		for(int i = 0; i < 4; i++) {
+			if (((dest >> i) & 1) == 1) {
+				builder.append(FLOAT_POINTER)
+					   .append('(')
+					   .append(ADDRESS)
+					   .append(INT_ADD)
+					   .append(Integer.toString(4*i))
+					   .append(')')
+					   .append(ASSIGNMENT)
+					   .append(VUFS)
+					   .append(VECTOR_DIRECTIONS[i])
+					   .append(END_LINE);
+			}
+		}
+		return builder.toString();
+	}
 
-    private String getPcodeText(long dest) {
-        switch(getName()) {
-            case PcodeInjectLibraryVu.VABS:
-                return getOperationText1(dest, ABS, VUFT, VUFS);
-			case PcodeInjectLibraryVu.VADD:
-				return getOperationText3(dest, FLOAT_ADD, VUFD, VUFS, VUFT, false);
-			case PcodeInjectLibraryVu.VADDBC:
-				return getOperationText3(dest, FLOAT_ADD, VUFD, VUFS, VUFT, true);
-			case PcodeInjectLibraryVu.VMADD:
-				return getMultiplyOperationText3(dest, FLOAT_ADD, VUFD, VUFS, VUFT, false);
-			case PcodeInjectLibraryVu.VMADDBC:
-				return getMultiplyOperationText3(dest, FLOAT_ADD, VUFD, VUFS, VUFT, true);
-            case PcodeInjectLibraryVu.VSUB:
-				return getOperationText3(dest, FLOAT_SUB, VUFD, VUFS, VUFT, false);
-			case PcodeInjectLibraryVu.VSUBBC:
-				return getOperationText3(dest, FLOAT_SUB, VUFD, VUFS, VUFT, true);
-			case PcodeInjectLibraryVu.VMUL:
-				return getOperationText3(dest, FLOAT_MUL, VUFD, VUFS, VUFT, false);
-			case PcodeInjectLibraryVu.VMULBC:
-				return getOperationText3(dest, FLOAT_MUL, VUFD, VUFS, VUFT, true);
-			case PcodeInjectLibraryVu.VMSUB:
-				return getMultiplyOperationText3(dest, FLOAT_SUB, VUFD, VUFS, VUFT, false);
-			case PcodeInjectLibraryVu.VMSUBBC:
-				return getMultiplyOperationText3(dest, FLOAT_SUB, VUFD, VUFS, VUFT, true);
-            case PcodeInjectLibraryVu.VFTOI0:
-                return getOperationText1(dest, TRUNC, VUFT, VUFS);
-            case PcodeInjectLibraryVu.VFTOI:
-                return getOperationText1(dest, FLOAT2FLOAT, VUFT, VUFS);
-            case PcodeInjectLibraryVu.VITOF:
-                return getOperationText1(dest, INT2FLOAT, VUFT, VUFS);
-            default:
-                return null;
-        }
+	private static String getMaxText(long dest, String name) {
+		boolean broadcast = name.endsWith(BROADCAST);
+		StringBuilder builder = new StringBuilder();
+		for(int i = 0; i < 4; i++) {
+			if (((dest >> i) & 1) == 1) {
+				String max = new StringBuilder(MAX)
+							.append(Integer.toString(i))
+							.append('>').toString();
+				String end = new StringBuilder(END)
+							.append(Integer.toString(i))
+							.append('>').toString();
+				builder.append(IF)
+				.append(VUFS)
+				.append(VECTOR_DIRECTIONS[i])
+				.append(FLOAT_GREATER_THAN)
+				.append(VUFT)
+				.append(VECTOR_DIRECTIONS[i])
+				.append(GOTO)
+				.append(max)
+				.append(END_LINE)
+				.append(VUFD)
+				.append(VECTOR_DIRECTIONS[i])
+				.append(ASSIGNMENT)
+				.append(VUFT);
+				if (!broadcast) {
+					builder.append(VECTOR_DIRECTIONS[i]);
+				}
+				builder.append(GOTO)
+				.append(end)
+				.append(END_LINE)
+				.append(max)
+				.append('\n')
+				.append(VUFD)
+				.append(VECTOR_DIRECTIONS[i])
+				.append(ASSIGNMENT)
+				.append(VUFS)
+				.append(VECTOR_DIRECTIONS[i])
+				.append(END_LINE)
+				.append(end);
+			}
+		}
+		return builder.toString();
+	}
+
+	private static String getMinText(long dest, String name) {
+		boolean broadcast = name.endsWith(BROADCAST);
+		StringBuilder builder = new StringBuilder();
+		for(int i = 0; i < 4; i++) {
+			if (((dest >> i) & 1) == 1) {
+				String max = new StringBuilder(MIN)
+							.append(Integer.toString(i))
+							.append('>').toString();
+				String end = new StringBuilder(END)
+							.append(Integer.toString(i))
+							.append('>').toString();
+				builder.append(IF)
+				.append(VUFS)
+				.append(VECTOR_DIRECTIONS[i])
+				.append(FLOAT_LESS_THAN)
+				.append(VUFT);
+				if (!broadcast) {
+					builder.append(VECTOR_DIRECTIONS[i]);
+				}
+				builder.append(GOTO)
+				.append(max)
+				.append(END_LINE)
+				.append(VUFD)
+				.append(VECTOR_DIRECTIONS[i])
+				.append(ASSIGNMENT)
+				.append(VUFT);
+				if (!broadcast) {
+					builder.append(VECTOR_DIRECTIONS[i]);
+				}
+				builder.append(GOTO)
+				.append(end)
+				.append(END_LINE)
+				.append(max)
+				.append('\n')
+				.append(VUFD)
+				.append(VECTOR_DIRECTIONS[i])
+				.append(ASSIGNMENT)
+				.append(VUFS)
+				.append(VECTOR_DIRECTIONS[i])
+				.append(END_LINE)
+				.append(end);
+			}
+		}
+		return builder.toString();
+	}
+
+	private static String getMFIRText(long dest, String name) {
+		StringBuilder builder = new StringBuilder();
+		for(int i = 0; i < 4; i++) {
+			if (((dest >> i) & 1) == 1) {
+				builder.append(VUFT)
+				.append(VECTOR_DIRECTIONS[i])
+				.append(ASSIGNMENT)
+				.append(SEXT)
+				.append(VUIS)
+				.append(')')
+				.append(END_LINE);
+			}
+		}
+		return builder.toString();
+	}
+
+	private static String getMoveText(long dest, String name) {
+		StringBuilder builder = new StringBuilder();
+		boolean broadcast = name.endsWith(BROADCAST);
+		for(int i = 0; i < 4; i++) {
+			if (((dest >> i) & 1) == 1) {
+				builder.append(VUFT)
+				.append(VECTOR_DIRECTIONS[i])
+				.append(ASSIGNMENT)
+				.append(VUFS);
+				if (!broadcast) {
+					builder.append(VECTOR_DIRECTIONS[i]);
+				}
+				builder.append(END_LINE);
+			}
+		}
+		return builder.toString();
+	}
+
+	private static String getMoveRotateText(long dest, String name) {
+		StringBuilder builder = new StringBuilder();
+		for(int i = 0; i < 4; i++) {
+			if (((dest >> i) & 1) == 1) {
+				builder.append(VUFT)
+				.append(VECTOR_DIRECTIONS[i])
+				.append(ASSIGNMENT)
+				.append(VUFS);
+				if (i+1 >= VECTOR_DIRECTIONS.length) {
+					builder.append(VECTOR_DIRECTIONS[0]);
+				} else {
+					builder.append(VECTOR_DIRECTIONS[i+1]);
+				}
+				builder.append(END_LINE);
+			}
+		}
+		return builder.toString();
+	}
+
+    private static Map<String, Pair<BiFunction<Long, String, String>, String>> getInstructionMap() {
+		Map<String, Pair<BiFunction<Long, String, String>, String>> instructions = new HashMap<>();
+		instructions.put(PcodeInjectLibraryVu.VABS,
+						 new Pair<BiFunction<Long, String, String>, String>(
+							InjectPayloadVu::getOperationText1, ABS));
+		instructions.put(PcodeInjectLibraryVu.VADD,
+						 new Pair<BiFunction<Long, String, String>, String>(
+							InjectPayloadVu::getOperationText3, FLOAT_ADD));
+		instructions.put(PcodeInjectLibraryVu.VADDBC,
+						 new Pair<BiFunction<Long, String, String>, String>(
+							InjectPayloadVu::getOperationText3, FLOAT_ADD));
+		instructions.put(PcodeInjectLibraryVu.VMADD,
+						 new Pair<BiFunction<Long, String, String>, String>(
+							InjectPayloadVu::getMultiplyOperationText3, FLOAT_ADD));
+		instructions.put(PcodeInjectLibraryVu.VMADDBC,
+						 new Pair<BiFunction<Long, String, String>, String>(
+							InjectPayloadVu::getMultiplyOperationText3, FLOAT_ADD));
+		instructions.put(PcodeInjectLibraryVu.VSUB,
+						 new Pair<BiFunction<Long, String, String>, String>(
+							InjectPayloadVu::getOperationText3, FLOAT_SUB));
+		instructions.put(PcodeInjectLibraryVu.VSUBBC,
+						 new Pair<BiFunction<Long, String, String>, String>(
+							InjectPayloadVu::getOperationText3, FLOAT_SUB));
+		instructions.put(PcodeInjectLibraryVu.VMUL,
+						 new Pair<BiFunction<Long, String, String>, String>(
+							InjectPayloadVu::getOperationText3, FLOAT_MUL));
+		instructions.put(PcodeInjectLibraryVu.VMULBC,
+						 new Pair<BiFunction<Long, String, String>, String>(
+							InjectPayloadVu::getOperationText3, FLOAT_MUL));
+		instructions.put(PcodeInjectLibraryVu.VMSUB,
+						 new Pair<BiFunction<Long, String, String>, String>(
+							InjectPayloadVu::getMultiplyOperationText3, FLOAT_SUB));
+		instructions.put(PcodeInjectLibraryVu.VMSUBBC,
+						 new Pair<BiFunction<Long, String, String>, String>(
+							InjectPayloadVu::getMultiplyOperationText3, FLOAT_SUB));
+		instructions.put(PcodeInjectLibraryVu.VFTOI0,
+						 new Pair<BiFunction<Long, String, String>, String>(
+							InjectPayloadVu::getOperationText1, TRUNC));
+		instructions.put(PcodeInjectLibraryVu.VFTOI,
+						 new Pair<BiFunction<Long, String, String>, String>(
+							InjectPayloadVu::getOperationText1, FLOAT2FLOAT));
+		instructions.put(PcodeInjectLibraryVu.VITOF,
+						 new Pair<BiFunction<Long, String, String>, String>(
+							InjectPayloadVu::getOperationText1, INT2FLOAT));
+		instructions.put(PcodeInjectLibraryVu.VULQ,
+						 new Pair<BiFunction<Long, String, String>, String>(
+							InjectPayloadVu::getLoadText, null));
+		instructions.put(PcodeInjectLibraryVu.VUSQ,
+						 new Pair<BiFunction<Long, String, String>, String>(
+							InjectPayloadVu::getStoreText, null));
+		instructions.put(PcodeInjectLibraryVu.VMAX,
+						 new Pair<BiFunction<Long, String, String>, String>(
+							InjectPayloadVu::getMaxText, null));
+		instructions.put(PcodeInjectLibraryVu.VMAXBC,
+						 new Pair<BiFunction<Long, String, String>, String>(
+							InjectPayloadVu::getMaxText, null));
+		instructions.put(PcodeInjectLibraryVu.VMIN,
+						 new Pair<BiFunction<Long, String, String>, String>(
+							InjectPayloadVu::getMinText, null));
+		instructions.put(PcodeInjectLibraryVu.VMINBC,
+						 new Pair<BiFunction<Long, String, String>, String>(
+							InjectPayloadVu::getMinText, null));
+		instructions.put(PcodeInjectLibraryVu.VMFIR,
+						 new Pair<BiFunction<Long, String, String>, String>(
+							InjectPayloadVu::getMFIRText, null));
+		instructions.put(PcodeInjectLibraryVu.VMOVE,
+						 new Pair<BiFunction<Long, String, String>, String>(
+							InjectPayloadVu::getMoveText, null));
+		instructions.put(PcodeInjectLibraryVu.VMOVEBC,
+						 new Pair<BiFunction<Long, String, String>, String>(
+							InjectPayloadVu::getMoveText, null));
+		instructions.put(PcodeInjectLibraryVu.VMR32,
+						 new Pair<BiFunction<Long, String, String>, String>(
+							InjectPayloadVu::getMoveRotateText, null));
+		return Collections.unmodifiableMap(instructions);
     }
 }

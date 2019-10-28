@@ -247,4 +247,5 @@ with VUID: {
     :vuid is vuid & vuid=0 { export 0:2; }
 }
 
-VU_OFF_BASE: vusimm11(VUIT) is vusimm11 & VUIT { tmp = (VUIT + vusimm11)*16; export tmp; }
+VU_OFF_BASE_IT: vusimm11(VUIT) is vusimm11 & VUIT { tmp:4 = zext((VUIT + vusimm11))*16; export tmp; }
+VU_OFF_BASE_IS: vusimm11(VUIS) is vusimm11 & VUIS { tmp:4 = zext((VUIS + vusimm11))*16; export tmp; }

@@ -60,6 +60,7 @@
         <register name="vf29" vector_lane_sizes="4"/>
         <register name="vf30" vector_lane_sizes="4"/>
         <register name="vf31" vector_lane_sizes="4"/>
+        <register name="vuACC" vector_lane_sizes="4"/>
         <register name="zero_qw" vector_lane_sizes="1,2,4,8"/>
         <register name="at_qw" vector_lane_sizes="1,2,4,8"/>
         <register name="v0_qw" vector_lane_sizes="1,2,4,8"/>

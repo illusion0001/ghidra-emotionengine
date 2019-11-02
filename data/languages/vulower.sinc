@@ -151,11 +151,11 @@ with : microMode=1 & cUpper=0 {
     }
 
     :eatanxy P, vufs is P & vuft=0 & vulop7=0x40 & vudest=0xc & vulop11=0x77c & vufs [cUpper=1; globalset(inst_next, cUpper);] {
-        P = arctan(vufs[64,32] f/ vufs[96,32]);
+        P = arctan(vufs[32,32] f/ vufs[0,32]);
     }
 
     :eatanxz P, vufs is P & vuft=0 & vulop7=0x40 & vudest=0xa & vulop11=0x77d & vufs [cUpper=1; globalset(inst_next, cUpper);] {
-        P = arctan(vufs[32,32] f/ vufs[96,32]);
+        P = arctan(vufs[64,32] f/ vufs[0,32]);
     }
 
     :eexp P, vufs^fsf is P & vuftf=0 & vuft=0 & vulop7=0x40 & vulop11=0x7fe & vufs & fsf [cUpper=1; globalset(inst_next, cUpper);] {

@@ -140,16 +140,16 @@ macro getSingleDest(sdest, src) {
 	if (sdest == 12) goto <x>;
 	goto <end>;
 	<w>
-	tmp = src[0,32];
+	tmp = src[96,32];
 	goto <end>;
 	<z>
-	tmp = src[32,32];
-	goto <end>;
-	<y>
 	tmp = src[64,32];
 	goto <end>;
+	<y>
+	tmp = src[32,32];
+	goto <end>;
 	<x>
-	tmp = src[96,32];
+	tmp = src[0,32];
 	<end>
 	export tmp;
 }
@@ -257,13 +257,13 @@ with : prime=18 {
 {
 	tmp:3 = *[register]:3 &vuCF_32;
 	tmp = tmp[0,23] << 6;
-	w:4 = abs(vuft[0,32]);
-	tmp[0,1] = vufs[96,32] f> w;
-	tmp[1,1] = vufs[96,32] f< f- w;
-	tmp[2,1] = vufs[64,32] f> w;
-	tmp[3,1] = vufs[64,32] f< f- w;
-	tmp[4,1] = vufs[32,32] f> w;
-	tmp[5,1] = vufs[32,32] f< f- w;
+	w:4 = abs(vuft[96,32]);
+	tmp[0,1] = vufs[0,32] f> w;
+	tmp[1,1] = vufs[0,32] f< f- w;
+	tmp[2,1] = vufs[32,32] f> w;
+	tmp[3,1] = vufs[32,32] f< f- w;
+	tmp[4,1] = vufs[64,32] f> w;
+	tmp[5,1] = vufs[64,32] f< f- w;
 	*[register]:3 &vuCF_32 = tmp;
 }
 :vdiv Q, vufs^fsf, vuft^ftf   is Q & vuinst & ftf & fsf  & vuft & vufs & vuop_0_10=0b01110111100
@@ -393,15 +393,15 @@ with : prime=18 {
     {}
 :vopmula."xyz" "ACC", vufs, vuft is vuinst & vudest=0b1110 & vuft & vufs & vuop_0_10=0b01011111110
 {
-	*[register]:4 &vuACCx = vufs[64,32] f* vuft[32,32];
-	*[register]:4 &vuACCy = vufs[32,32] f* vuft[96,32];
-	*[register]:4 &vuACCz = vufs[96,32] f* vuft[64,32];
+	*[register]:4 &vuACCx = vufs[32,32] f* vuft[64,32];
+	*[register]:4 &vuACCy = vufs[64,32] f* vuft[0,32];
+	*[register]:4 &vuACCz = vufs[0,32] f* vuft[32,32];
 }
 :vopmsub."xyz" vufd, vufs, vuft  is vuinst & vudest=0b1110 & vuft & vufs & vufd & vuop_0_5=0b101110
 {
-	vufd[96,32] = *[register]:4 &vuACCx f- vufs[64,32] f* vuft[32,32];
-	vufd[64,32] = *[register]:4 &vuACCy f- vufs[32,32] f* vuft[96,32];
-	vufd[32,32] = *[register]:4 &vuACCz f- vufs[96,32] f* vuft[64,32];
+	vufd[0,32] = *[register]:4 &vuACCx f- vufs[32,32] f* vuft[64,32];
+	vufd[32,32] = *[register]:4 &vuACCy f- vufs[64,32] f* vuft[0,32];
+	vufd[64,32] = *[register]:4 &vuACCz f- vufs[0,32] f* vuft[32,32];
 }
 :vrget^dest vuft, "R"   is vuinst & dest & vuft & vufs=0b00000 & vuop_0_10=0b10000111101
     { vuft = VRGET(vuft); }
@@ -517,13 +517,13 @@ with : prime=18 {
 	build VUFLAGS;
 	tmp:3 = *[register]:3 &vuCF_32;
 	tmp = tmp[0,23] << 6;
-	w:4 = abs(vuft[0,32]);
-	tmp[0,1] = vufs[96,32] f> w;
-	tmp[1,1] = vufs[96,32] f< f- w;
-	tmp[2,1] = vufs[64,32] f> w;
-	tmp[3,1] = vufs[64,32] f< f- w;
-	tmp[4,1] = vufs[32,32] f> w;
-	tmp[5,1] = vufs[32,32] f< f- w;
+	w:4 = abs(vuft[96,32]);
+	tmp[0,1] = vufs[0,32] f> w;
+	tmp[1,1] = vufs[0,32] f< f- w;
+	tmp[2,1] = vufs[32,32] f> w;
+	tmp[3,1] = vufs[32,32] f< f- w;
+	tmp[4,1] = vufs[64,32] f> w;
+	tmp[5,1] = vufs[64,32] f< f- w;
 	*[register]:3 &vuCF_32 = tmp;
 }
 :ftoi0^dest_L vuft_L, vufs_L, VI^VUFLAGS_L is VUFLAGS_L & VI & dest_L & vuft_L & vufs_L & vuop_32_42=0b00101111100
@@ -801,16 +801,16 @@ with : prime=18 {
 :opmula."xyz" "ACC", vufs, vuft^VUFLAGS is VUFLAGS & vudest=0b1110 & vuft & vufs & vuop_0_10=0b01011111110
 {
 	build VUFLAGS;
-	*[register]:4 &vuACCx = vufs[64,32] f* vuft[32,32];
-	*[register]:4 &vuACCy = vufs[32,32] f* vuft[96,32];
-	*[register]:4 &vuACCz = vufs[96,32] f* vuft[64,32];
+	*[register]:4 &vuACCx = vufs[32,32] f* vuft[64,32];
+	*[register]:4 &vuACCy = vufs[64,32] f* vuft[0,32];
+	*[register]:4 &vuACCz = vufs[0,32] f* vuft[32,32];
 }
 :opmsub."xyz" vufd, vufs, vuft^VUFLAGS is VUFLAGS & vudest=0b1110 & vuft & vufs & vufd & vuop_0_5=0b101110
 {
 	build VUFLAGS;
-	vufd[96,32] = *[register]:4 &vuACCx f- vufs[64,32] f* vuft[32,32];
-	vufd[64,32] = *[register]:4 &vuACCy f- vufs[32,32] f* vuft[96,32];
-	vufd[32,32] = *[register]:4 &vuACCz f- vufs[96,32] f* vuft[64,32];
+	vufd[0,32] = *[register]:4 &vuACCx f- vufs[32,32] f* vuft[64,32];
+	vufd[32,32] = *[register]:4 &vuACCy f- vufs[64,32] f* vuft[0,32];
+	vufd[64,32] = *[register]:4 &vuACCz f- vufs[0,32] f* vuft[32,32];
 }
 :sub^dest vufd, vufs, vuft^VUFLAGS is VUFLAGS & dest & vuft & vufs & vufd & vuop_0_5=0b101100
 {

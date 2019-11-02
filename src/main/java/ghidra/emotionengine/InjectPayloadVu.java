@@ -35,6 +35,7 @@ import ghidra.app.plugin.processors.sleigh.SleighLanguage;
 import ghidra.app.plugin.processors.sleigh.template.ConstructTpl;
 import ghidra.app.plugin.processors.sleigh.template.OpTpl;
 import ghidra.pcodeCPort.slgh_compile.PcodeParser;
+import ghidra.program.model.address.Address;
 import ghidra.program.model.lang.*;
 import ghidra.program.model.listing.Program;
 import ghidra.program.model.pcode.PcodeXMLException;
@@ -76,7 +77,14 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 	private static final String ADDRESS = "addr";
 	private static final String FLOAT_POINTER = "*:4 ";
 	private static final String BROADCAST = "BC";
+	private static final String VEC_ZERO = "vf0";
 
+	private static final String[] ZERO = new String[]{
+		"int2float(1:4)",
+		"int2float(0:4)",
+		"int2float(0:4)",
+		"int2float(0:4)"
+	};
     private static final String[] VECTOR_DIRECTIONS = new String[]{
         "[96,32]",
         "[64,32]",
@@ -130,13 +138,28 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 		}
 	}
 
+	private String setZero(long dest, String register) {
+		final int MAX_STRING_LENGTH = 119;
+		StringBuilder builder = new StringBuilder(MAX_STRING_LENGTH);
+		for(int i = 0; i < 4; i++) {
+			if (((dest >> i) & 1) == 1) {
+				builder.append(register)
+				.append(VECTOR_DIRECTIONS[i])
+				.append(ASSIGNMENT)
+				.append(ZERO[i])
+				.append(END_LINE);
+			}
+		}
+		return builder.toString();
+	}
+
 	public OpTpl[] getPcode(PcodeParser parser, Program program, String context) {
+		Address vf0Address = program.getRegister(VEC_ZERO).getAddress();
 		if (!INSTRUCTIONS.containsKey(getName())) {
 			return new OpTpl[0];
 		}
 		String sourceName = getSource();
 		Location loc = new Location(sourceName, 1);
-
 		InjectParameter[] input = getInput();
 		for (InjectParameter element : input) {
 			parser.addOperand(loc, element.getName(), element.getIndex());
@@ -146,10 +169,20 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 			parser.addOperand(loc, element.getName(), element.getIndex());
 		}
 		InjectContext injectContext = getInjectContext(program, context);
+		long dest = injectContext.inputlist.get(0).getOffset();
 		BiFunction<Long, String, String> function = INSTRUCTIONS.get(getName()).first;
-		String pcodeText = function.apply(injectContext.inputlist.get(0).getOffset(), getName());
+		StringBuilder pcodeTextBuilder = new StringBuilder();
+		for (int i = 1; i < injectContext.inputlist.size(); i++) {
+			if (injectContext.inputlist.get(i).getSize() == 0x10) {
+				if (vf0Address.equals(injectContext.inputlist.get(i).getAddress())) {
+					pcodeTextBuilder.append(setZero(dest, input[i].getName()));
+				}
+			}
+		}
+		pcodeTextBuilder.append(function.apply(dest, getName()));
 		String constructTplXml =
-			PcodeParser.stringifyTemplate(parser.compilePcode(pcodeText, sourceName, 1));
+			PcodeParser.stringifyTemplate(parser.compilePcode(
+				pcodeTextBuilder.toString(), sourceName, 1));
 		if (constructTplXml == null) {
 			throw new SleighException("pcode compile failed " + sourceName);
 		}

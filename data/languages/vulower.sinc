@@ -142,6 +142,7 @@ with : microMode=1 & cUpper=0 {
     :div Q, vufs^fsf, vuft^ftf is Q & vulop7=0x40 & vulop11=0x3bc & vufs & fsf & vuft & ftf [cUpper=1; globalset(inst_next, cUpper);] {
         build fsf;
         build ftf;
+        vuStatus_32[5,1] = ((ftf f== 0) && (fsf f!= 0));
         Q = fsf f/ ftf;
     }
 
@@ -318,6 +319,10 @@ with : microMode=1 & cUpper=0 {
     :rsqrt Q, vufs^fsf, vuft^ftf is Q & vusimm11 & vulop7=0x40 & vulop11=0x3be & vufs & fsf & vuft & ftf [cUpper=1; globalset(inst_next, cUpper);] {
         build fsf;
         build ftf;
+        vuStatus_32[4,1] = (ftf f< 0);
+        vuStatus_32[10,1] = (vuStatus_32[10,1] || vuStatus_32[4,1]);
+        vuStatus_32[5,1] = ((ftf f== 0) && (fsf f!= 0));
+        vuStatus_32[11,1] = (vuStatus_32[11,1] || vuStatus_32[5,1]);
         Q = fsf f/ sqrt(ftf);
     }
 
@@ -329,7 +334,10 @@ with : microMode=1 & cUpper=0 {
 
     :"sqrt" Q, vuft^ftf is Q & vufsf=0 & VUIS & vusimm11 & vulop7=0x40 & vulop11=0x3bd & vuft & ftf [cUpper=1; globalset(inst_next, cUpper);] {
         build ftf;
-        Q = sqrt(abs(ftf));
+        vuStatus_32[4,1] = (ftf f< 0);
+        vuStatus_32[10,1] = (vuStatus_32[10,1] || vuStatus_32[4,1]);
+        vuStatus_32[5,1] = 0:1;
+        Q = sqrt(ftf);
     }
 
     :waitp is vulop7=0x40 & vudest=0 & vuft=0 & vufs=0 & vulop11=0x7bf [cUpper=1; globalset(inst_next, cUpper);] {}

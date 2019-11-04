@@ -58,7 +58,7 @@ define register offset=0x4100 size=4 [
     vf31x       vf31y       vf31z       vf31w
 ];
 
-define register offset=0x4200 size=2 [
+define register offset=0x4300 size=2 [
      vi0  _ _ _  _ _ _ _
      vi1  _ _ _  _ _ _ _
      vi2  _ _ _  _ _ _ _
@@ -79,89 +79,47 @@ define register offset=0x4200 size=2 [
 
 #obtained from pcsx2 VU.h
 define register offset=0x4300 size=4 [
-    vuStatus_32 _ _ _
-    vuMAC_32 _ _ _
-    vuCF_32 _ _ _
-    vuACCw vuACCz vuACCy vuACCx
-    vuR_32 _ _ _
-    vuI _ _ _
-    Q _ _ _
-    P _ _ _
-    vf0_flag _ _ _
-    _ _ _ _
-    vuTCP_32 _ _ _
-    vuCMSAR0_32 _ _ _
-    vuFBRST _ _ _
-    vpu_STAT _ _ _
-    _ _ _ _
-    vuCMSAR1_32 _ _ _
+    vucr0
+    vucr1
+    vucr2
+    vucr3
+    vucr4
+    vucr5
+    vucr6
+    vucr7
+    vucr8
+    vucr9
+    vucr10
+    vucr11
+    vucr12
+    vucr13
+    vucr14
+    vucr15
+    vuStatus_32
+    vuMAC_32
+    vuCF_32
+    _
+    vuR_32
+    vuI
+    Q
+    P
+    vf0_flag
+    _
+    vuTCP_32
+    vuCMSAR0_32
+    vuFBRST
+    vpu_STAT
+    _
+    vuCMSAR1_32
 ];
 
-define register offset=0x4330 size=16 vuACC;
 
-#define bitrange vuVBS0=vpu_STAT[0,1]
-#                vuVDS0=vpu_STAT[1,1]
-#                vuVTS0=vpu_STAT[2,1]
-#                vuVFS0=vpu_STAT[3,1]
-#                vuDIV0=vpu_STAT[5,1]
-#                vuIBS0=vpu_STAT[7,1]
-#                vuVBS1=vpu_STAT[8,1]
-#                vuVDS1=vpu_STAT[9,1]
-#                vuVTS1=vpu_STAT[10,1]
-#                vuVFS1=vpu_STAT[11,1]
-#                vuVGW1=vpu_STAT[12,1]
-#                vuDIV1=vpu_STAT[13,1]
-#                vuEFU1=vpu_STAT[14,1];
+define register offset=0x4400 size=16 vuACC;
+define register offset=0x4400 size=4 [vuACCw vuACCz vuACCy vuACCx];
 
-#define bitrange vuFB0=vuFBRST[0,1]
-#                vuRS0=vuFBRST[1,1]
-#                vuDE0=vuFBRST[2,1]
-#                vuTE0=vuFBRST[3,1]
-#                vuFB1=vuFBRST[8,1]
-#                vuRS1=vuFBRST[9,1]
-#                vuDE1=vuFBRST[10,1]
-#                vuTE1=vuFBRST[11,1];
-
-#define bitrange vuCMSAR0=vuCMSAR0_32[0,15];
-#define bitrange vuCMSAR1=vuCMSAR1_32[0,15];
-
-#define bitrange vuTCP=vuTCP_32[0,15];
-
-#define bitrange vuCF=vuCF_32[0,23];
-
-#define bitrange vuMAC=vuMAC_32[0,15]
-#                vuZw=vuMAC_32[0,1]
-#                vuZz=vuMAC_32[1,1]
-#                vuZy=vuMAC_32[2,1]
-#                vuZx=vuMAC_32[3,1]
-#                vuSw=vuMAC_32[4,1]
-#                vuSz=vuMAC_32[5,1]
-#                vuSy=vuMAC_32[6,1]
-#                vuSx=vuMAC_32[7,1]
-#                vuUw=vuMAC_32[8,1]
-#                vuUz=vuMAC_32[9,1]
-#                vuUy=vuMAC_32[10,1]
-#                vuUx=vuMAC_32[11,1]
-#                vuOw=vuMAC_32[12,1]
-#                vuOz=vuMAC_32[13,1]
-#                vuOy=vuMAC_32[14,1]
-#                vuOx=vuMAC_32[15,1];
-
-#define bitrange vuStatus=vuStatus_32[0,11]
-#                vuStatusZ=vuStatus_32[0,1]
-#                vuStatusS=vuStatus_32[1,1]
-#                vuStatusU=vuStatus_32[2,1]
-#                vuStatusO=vuStatus_32[3,1]
-#                vuStatusI=vuStatus_32[4,1]
-#                vuStatusD=vuStatus_32[5,1]
-#                vuStatusZS=vuStatus_32[6,1]
-#                vuStatusSS=vuStatus_32[7,1]
-#                vuStatusUS=vuStatus_32[8,1]
-#                vuStatusOS=vuStatus_32[9,1]
-#                vuStatusIS=vuStatus_32[10,1]
-#                vuStatusDS=vuStatus_32[11,1];
-
-#define bitrange vuR=vuR_32[0,23];
+define register offset=0x4468 size=2 TCP;
+define register offset=0x446C size=2 CMSAR0;
+define register offset=0x447C size=2 CMSAR1;
 
 attach variables [ vuft vufd vufd_qmc2 vufs vuft_L vufd_L vufs_L ] [
     vf0     vf1     vf2     vf3
@@ -183,6 +141,17 @@ attach variables [ vuit vuis vuid ] [
     _ _ _ _
     _ _ _ _
     _ _ _ _
+];
+
+attach variables vuccid [
+    vucr0  vucr1  vucr2  vucr3
+    vucr4  vucr5  vucr6  vucr7
+    vucr8  vucr9  vucr10 vucr11
+    vucr12 vucr13 vucr14 vucr15
+    vuStatus_32 vuMAC_32 vuCF_32 _
+    vuR_32 vuI Q _
+    _ _ vuTCP_32 vuCMSAR0_32
+    vuFBRST vpu_STAT _ vuCMSAR1_32
 ];
 
 macro ssum(src, dest) {

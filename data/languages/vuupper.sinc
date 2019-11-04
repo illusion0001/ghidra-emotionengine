@@ -49,8 +49,22 @@ define pcodeop VSUB;
 define pcodeop VSUBBC;
 define pcodeop VWAITQ;
 
-I: "NI" is vuinterlock=0 { export 0:1; }
-I: "I"  is vuinterlock=1 { export 0:1; }
+INTERLOCK: "NI" is vuinterlock=0 { export 0:1; }
+INTERLOCK: "I"  is vuinterlock=1 { export 0:1; }
+
+VUCCID: vuccid is vuccid { export vuccid; }
+VUCCID: "Status" is vuccid & vuccid=0x10 { export vuccid; }
+VUCCID: "MAC" is vuccid & vuccid=0x11 { export vuccid; }
+VUCCID: "CF" is vuccid & vuccid=0x12 { export vuccid; }
+
+VUCCID: "R" is vuccid & vuccid=0x14 { export vuccid; }
+VUCCID: "I" is vuccid & vuccid=0x15 { export vuccid; }
+
+VUCCID: "TPC" is vuccid & vuccid=0x1A { export vuccid; }
+VUCCID: "CMSAR0" is vuccid & vuccid=0x1B { export vuccid; }
+VUCCID: "FBRST" is vuccid & vuccid=0x1C { export vuccid; }
+VUCCID: "VPU-STAT" is vuccid & vuccid=0x1D { export vuccid; }
+VUCCID: "CMSAR1" is vuccid & vuccid=0x1F { export vuccid; }
 
 with dest: {
 	: ""      is vudest=0b0000 { export 0:1; }
@@ -98,14 +112,21 @@ with sdest: {
 }
 
 with bc: {
-	: ".x"      is vuft & vubc=0 { tmp:4 = vuft[0,32]; export tmp; }
-	: ".y"      is vuft & vubc=1 { tmp:4 = vuft[32,32]; export tmp; }
-	: ".z"      is vuft & vubc=2 { tmp:4 = vuft[64,32]; export tmp; }
-	: ".w"      is vuft & vubc=3 { tmp:4 = vuft[96,32]; export tmp; }
-	: ".x"     is vuft & vubc=0 & vuft=0 { tmp:4 = int2float(0:4); export tmp; }
-	: ".y"     is vuft & vubc=1 & vuft=0 { tmp:4 = int2float(0:4); export tmp; }
-	: ".z"     is vuft & vubc=2 & vuft=0 { tmp:4 = int2float(0:4); export tmp; }
-	: ".w"     is vuft & vubc=3 & vuft=0 { tmp:4 = int2float(1:4); export tmp; }
+	: "x"      is vuft & vubc=0 { tmp:4 = vuft[0,32]; export tmp; }
+	: "y"      is vuft & vubc=1 { tmp:4 = vuft[32,32]; export tmp; }
+	: "z"      is vuft & vubc=2 { tmp:4 = vuft[64,32]; export tmp; }
+	: "w"      is vuft & vubc=3 { tmp:4 = vuft[96,32]; export tmp; }
+	: "x"     is vuft & vubc=0 & vuft=0 { tmp:4 = int2float(0:4); export tmp; }
+	: "y"     is vuft & vubc=1 & vuft=0 { tmp:4 = int2float(0:4); export tmp; }
+	: "z"     is vuft & vubc=2 & vuft=0 { tmp:4 = int2float(0:4); export tmp; }
+	: "w"     is vuft & vubc=3 & vuft=0 { tmp:4 = int2float(1:4); export tmp; }
+}
+
+with _bc: {
+	: "x"      is vuft & vubc=0 {}
+	: "y"      is vuft & vubc=1 {}
+	: "z"      is vuft & vubc=2 {}
+	: "w"      is vuft & vubc=3 {}
 }
 
 with fsf: {
@@ -204,25 +225,25 @@ with : prime=18 {
         goto Rel16;
     }
     
-    :cfc2.I RT, vuccid  is vuop_21_25=0b00010 & RT & vuccid & vuop_1_10=0b0000000000 & I
-        { RT = zext(vuccid:4); }
-    :ctc2.I RTsrc, vuccid       is vuop_21_25=0b00110 & RTsrc & vuccid & vuop_1_10=0b0000000000 & I
-        { vuccid = RTsrc:4; }
-    :qmfc2.I RT128, vufd_qmc2        is vuop_21_25=0b00001 & RT128 & vufd_qmc2 & I
+    :cfc2.I RT32, VUCCID  is vuop_21_25=0b00010 & RT32 & VUCCID & vuop_1_10=0b0000000000 & INTERLOCK
+        { RT32 = VUCCID; }
+    :ctc2.I RT32src, VUCCID       is vuop_21_25=0b00110 & RT32src & VUCCID & vuop_1_10=0b0000000000 & INTERLOCK
+        { VUCCID = RT32src; }
+    :qmfc2.I RT128, vufd_qmc2        is vuop_21_25=0b00001 & RT128 & vufd_qmc2 & INTERLOCK
     {
 		RT128[0,32] = vufd_qmc2[0,32];
 		RT128[32,32] = vufd_qmc2[32,32];
 		RT128[64,32] = vufd_qmc2[64,32];
 		RT128[96,32] = vufd_qmc2[96,32];
 	}
-	:qmfc2.I RT128, vufd_qmc2        is vuop_21_25=0b00001 & RT128 & vufd_qmc2 & vufd_qmc2=0 & I
+	:qmfc2.I RT128, vufd_qmc2        is vuop_21_25=0b00001 & RT128 & vufd_qmc2 & vufd_qmc2=0 & INTERLOCK
     {
 		RT128[0,32] = int2float(1:4);
 		RT128[32,32] = int2float(0:4);
 		RT128[64,32] = int2float(0:4);
 		RT128[96,32] = int2float(0:4);
 	}
-    :qmtc2.I RT128, vufd_qmc2        is vuop_21_25=0b00101 & RT128 & vufd_qmc2 & vuop_1_10=0b0000000000 & I
+    :qmtc2.I RT128, vufd_qmc2        is vuop_21_25=0b00101 & RT128 & vufd_qmc2 & vuop_1_10=0b0000000000 & INTERLOCK
     {
 		vufd_qmc2[0,32] = RT128[0,32];
 		vufd_qmc2[32,32] = RT128[32,32];
@@ -243,7 +264,7 @@ with : prime=18 {
     { vufd = VADDBC(dest, vufs, vuI); }
 :vaddq^dest vufd, vufs, Q     is Q & vuinst & dest & vuft=0b00000 & vufs & vufd & vuop_0_5=0b100000
     { vufd = VADDBC(dest, vufs, Q); }
-:vadd^dest vufd, vufs, vuft^bc  is vuinst & dest & vuft & vufs & vufd & vuop_2_5=0b0000 & bc
+:vadd^_bc^dest vufd, vufs, vuft^bc  is vuinst & dest & vuft & vufs & vufd & vuop_2_5=0b0000 & bc & _bc
     { vufd = VADDBC(dest, vufs, bc); }
 :vadda^dest "ACC" vufs, vuft     is vuinst & dest & vuft & vufs & vuop_0_10=0b01010111100
     { vuACC = VADD(dest, vufs, vuft); }
@@ -251,9 +272,9 @@ with : prime=18 {
     { vuACC = VADDBC(dest, vufs, vuI); }
 :vaddaq^dest "ACC", vufs, Q   is Q & vuinst & dest & vuft=0b00000 & vufs & vuop_0_10=0b01000111100
     { vuACC = VADDBC(dest, vufs, Q); }
-:vadda^dest "ACC", vufs, vuft^bc is vuinst & dest & vuft & vufs & vuop_2_10=0b000001111 & bc
+:vadda^_bc^dest "ACC", vufs, vuft^bc is vuinst & dest & vuft & vufs & vuop_2_10=0b000001111 & bc & _bc
     { vuACC = VADDBC(dest, vufs, bc); }
-:vclip"w.xyz" vufs, vuft        is vuinst & vudest=0b1110 & vuft & vufs & vuop_0_10=0b00111111111
+:vclip"w.xyz" vufs^"xyz", vuft^"w"        is vuinst & vudest=0b1110 & vuft & vufs & vuop_0_10=0b00111111111
 {
 	tmp:3 = *[register]:3 &vuCF_32;
 	tmp = tmp[0,23] << 6;
@@ -266,10 +287,12 @@ with : prime=18 {
 	tmp[5,1] = vufs[64,32] f< f- w;
 	*[register]:3 &vuCF_32 = tmp;
 }
-:vdiv Q, vufs^fsf, vuft^ftf   is Q & vuinst & ftf & fsf  & vuft & vufs & vuop_0_10=0b01110111100
+:vdiv Q, vufs^fsf, vuft^ftf   is Q & vuinst & ftf & fsf & vuft & vufs & vuop_0_10=0b01110111100
 {
     build fsf;
     build ftf;
+	vuStatus_32[5,1] = ((ftf f== 0) && (fsf f!= 0));
+	vuStatus_32[11,1] = (vuStatus_32[11,1] || vuStatus_32[5,1]);
     Q = fsf f/ ftf;
 }
 :vftoi0^dest vuft, vufs is vuinst & dest & vuft & vufs & vuop_0_10=0b00101111100
@@ -324,7 +347,7 @@ with : prime=18 {
     { vufd = VMADDBC(dest, vufs, vuI); }
 :vmaddq^dest vufd, vufs, Q    is Q & vuinst & dest & vuft=0b00000 & vufs & vufd & vuop_0_5=0b100001
     { vufd = VMADDBC(dest, vufs, Q); }
-:vmadd^dest vufd, vufs, vuft^bc  is vuinst & dest & vuft & vufs & vufd & vuop_2_5=0b0010 & bc
+:vmadd^_bc^dest vufd, vufs, vuft^bc  is vuinst & dest & vuft & vufs & vufd & vuop_2_5=0b0010 & bc & _bc
     { vufd = VMADDBC(dest, vufs, bc); }
 :vmadda^dest "ACC", vufs, vuft  is vuinst & dest & vuft & vufs & vuop_0_10=0b01010111101
     { vuACC = VMADDBC(dest, vufs, vuft); }
@@ -332,13 +355,13 @@ with : prime=18 {
     { vuACC = VMADDBC(dest, vufs, vuI); }
 :vmaddaq^dest "ACC", vufs, Q  is Q & vuinst & dest & vuft=0b00000 & vufs & vuop_0_10=0b01000111101
     { vuACC = VMADDBC(dest, vufs, Q); }
-:vmadda^dest "ACC", vufs, vuft^bc        is vuinst & dest & vuft & vufs & vuop_2_10=0b000101111 & bc
+:vmadda^_bc^dest "ACC", vufs, vuft^bc        is vuinst & dest & vuft & vufs & vuop_2_10=0b000101111 & bc & _bc
     { vuACC = VMADDBC(dest, vufs, bc); }
 :vmax^dest vufd, vufs, vuft     is vuinst & dest & vuft & vufs & vufd & vuop_0_5=0b101011
     { vufd = VMAX(dest, vufs, vuft); }
 :vmaxi^dest vufd, vufs, "I"     is vuinst & dest & vuft=0b00000 & vufs & vufd & vuop_0_5=0b011101
     { vufd = VMAXBC(dest, vufs, vuI); }
-:vmax^dest vufd, vufs, vuft^bc  is vuinst & dest & vuft & vufs & vufd & vuop_2_5=0b0100 & bc
+:vmax^_bc^dest vufd, vufs, vuft^bc  is vuinst & dest & vuft & vufs & vufd & vuop_2_5=0b0100 & bc & _bc
     { vufd = VMAXBC(dest, vufs, bc); }
 :vmfir^dest vuft, vuis  is vuinst & dest & vuft & vuis & vuop_0_10=0b01111111101
     { vuft = VMFIR(dest, vuis); }
@@ -346,7 +369,7 @@ with : prime=18 {
     { vufd = VMINI(dest, vufs, vuft); }
 :vminii^dest vufd, vufs, "I"    is vuinst & dest & vuft=0b00000 & vufs & vufd & vuop_0_5=0b011111
     { vufd = VMINIBC(dest, vufs, vuI); }
-:vminibc^dest vufd, vufs, vuft^bc        is vuinst & dest & vuft & vufs & vufd & vuop_2_5=0b0101 & bc
+:vmini^_bc^dest vufd, vufs, vuft^bc        is vuinst & dest & vuft & vufs & vufd & vuop_2_5=0b0101 & bc & _bc
     { vufd = VMINIBC(dest, vufs, bc); }
 :vmove^dest vuft, vufs  is vuinst & dest & vuft & vufs & vuop_0_10=0b01100111100
     { vuft = VMOVE(dest, vufs); }
@@ -358,7 +381,7 @@ with : prime=18 {
     { vufd = VMSUBBC(dest, vufs, vuI); }
 :vmsubq^dest vufd, vufs, Q    is Q & vuinst & dest & vuft=0b00000 & vufs & vufd & vuop_0_5=0b100101
     { vufd = VMSUBBC(dest, vufs, Q); }
-:vmsub^dest vufd, vufs, vuft^bc  is vuinst & dest & vuft & vufs & vufd & vuop_2_5=0b0011 & bc
+:vmsub^_bc^dest vufd, vufs, vuft^bc  is vuinst & dest & vuft & vufs & vufd & vuop_2_5=0b0011 & bc & _bc
     { vufd = VMSUBBC(dest, vufs, bc); }
 :vmsuba^dest "ACC", vufs, vuft  is vuinst & dest & vuft & vufs & vuop_0_10=0b01011111101
     { vuACC = VMSUB(dest, vufs, vuft); }
@@ -366,7 +389,7 @@ with : prime=18 {
     { vuACC = VMSUBBC(dest, vufs, vuI); }
 :vmsubaq^dest "ACC", vufs, Q  is Q & vuinst & dest & vuft=0b00000 & vufs & vuop_0_10=0b01001111101
     { vuACC = VMSUBBC(dest, vufs, Q); }
-:vmsuba^dest "ACC", vufs, vuft^bc        is vuinst & dest & vuft & vufs & vuop_2_10=0b000111111 & bc
+:vmsuba^_bc^dest "ACC", vufs, vuft^bc        is vuinst & dest & vuft & vufs & vuop_2_10=0b000111111 & bc & _bc
     { vuACC = VMSUBBC(dest, vufs, bc); }
 :vmtir vuit, vufs^fsf      is vuinst & vuftf=0b00 & fsf & vuit & vufs & vuop_0_10=0b01111111100
 {
@@ -379,7 +402,7 @@ with : prime=18 {
     { vufd = VMULBC(dest, vufs, vuI); }
 :vmulq^dest vufd, vufs, Q     is Q & vuinst & dest & vuft=0b00000 & vufs & vufd & vuop_0_5=0b011100
     { vufd = VMULBC(dest, vufs, Q); }
-:vmul^dest vufd, vufs, vuft^bc  is vuinst & dest & vuft & vufs & vufd & vuop_2_5=0b0110 & bc
+:vmul^_bc^dest vufd, vufs, vuft^bc  is vuinst & dest & vuft & vufs & vufd & vuop_2_5=0b0110 & bc & _bc
     { vufd = VMULBC(dest, vufs, bc); }
 :vmula^dest "ACC", vufs, vuft   is vuinst & dest & vuft & vufs & vuop_0_10=0b01010111110
     { vuACC = VMUL(dest, vufs, vuft); }
@@ -387,17 +410,17 @@ with : prime=18 {
     { vuACC = VMULBC(dest, vufs, vuI); }
 :vmulaq^dest "ACC", vufs, Q   is Q & vuinst & dest & vuft=0b00000 & vufs & vuop_0_10=0b00111111100
     { vuACC = VMULBC(dest, vufs, Q); }
-:vmula^dest "ACC", vufs, vuft^bc is vuinst & dest & vuft & vufs & vuop_2_10=0b001101111 & bc
+:vmula^_bc^dest "ACC", vufs, vuft^bc is vuinst & dest & vuft & vufs & vuop_2_10=0b001101111 & bc & _bc
     { vuACC = VMULBC(dest, vufs, bc); }
 :vnop is vuinst & vudest=0b0000 & vuft=0b00000 & vufs=0b00000 & vuop_0_10=0b01011111111
     {}
-:vopmula."xyz" "ACC", vufs, vuft is vuinst & vudest=0b1110 & vuft & vufs & vuop_0_10=0b01011111110
+:vopmula."xyz" "ACC", vufs^"xyz", vuft^"xyz" is vuinst & vudest=0b1110 & vuft & vufs & vuop_0_10=0b01011111110
 {
 	*[register]:4 &vuACCx = vufs[32,32] f* vuft[64,32];
 	*[register]:4 &vuACCy = vufs[64,32] f* vuft[0,32];
 	*[register]:4 &vuACCz = vufs[0,32] f* vuft[32,32];
 }
-:vopmsub."xyz" vufd, vufs, vuft  is vuinst & vudest=0b1110 & vuft & vufs & vufd & vuop_0_5=0b101110
+:vopmsub."xyz" vufd^"xyz", vufs^"xyz", vuft^"xyz"  is vuinst & vudest=0b1110 & vuft & vufs & vufd & vuop_0_5=0b101110
 {
 	vufd[0,32] = *[register]:4 &vuACCx f- vufs[32,32] f* vuft[64,32];
 	vufd[32,32] = *[register]:4 &vuACCy f- vufs[64,32] f* vuft[0,32];
@@ -416,6 +439,10 @@ with : prime=18 {
 {
     build fsf;
     build ftf;
+	vuStatus_32[4,1] = (ftf f< 0);
+	vuStatus_32[10,1] = (vuStatus_32[10,1] || vuStatus_32[4,1]);
+	vuStatus_32[5,1] = ((ftf f== 0) && (fsf f!= 0));
+	vuStatus_32[11,1] = (vuStatus_32[11,1] || vuStatus_32[5,1]);
     Q = fsf f/ sqrt(ftf);
 }
 :vrxor "R", vufs^fsf       is vuinst & vuftf=0b00 & fsf & vuft=0b00000 & vufs & vuop_0_10=0b10000111111
@@ -423,13 +450,13 @@ with : prime=18 {
     build fsf;
     vuR_32 = vuR_32 ^ fsf;
 }
-:vsqd^dest vufs (--VUIT)        is vuinst & dest & VUIT & vufs & vuop_0_10=0b01101111111
+:vsqd^dest vufs,  (--VUIT)        is vuinst & dest & VUIT & vufs & vuop_0_10=0b01101111111
 {
 	VUIT = VUIT - 1;
 	offset:4 = $(BASE_DATA_ADDRESS)+zext(VUIT*16);
 	VUSQ(dest, offset, vufs);
 }
-:vsqi^dest vufs (VUIT++)        is vuinst & dest & VUIT & vufs & vuop_0_10=0b01101111101
+:vsqi^dest vufs,  (VUIT++)        is vuinst & dest & VUIT & vufs & vuop_0_10=0b01101111101
 {
 	offset:4 = $(BASE_DATA_ADDRESS)+zext(VUIT*16);
 	VUSQ(dest, offset, vufs);
@@ -438,6 +465,8 @@ with : prime=18 {
 :vsqrt Q, vuft^ftf  is Q & vuinst & ftf & vuft & vufs=0b00000 & vuop_0_10=0b01110111101
 {
     build ftf;
+	vuStatus_32[4,1] = (ftf f< 0);
+	vuStatus_32[5,1] = 0;
     Q = sqrt(ftf);
 }
 :vsub^dest vufd, vufs, vuft     is vuinst & dest & vuft & vufs & vufd & vuop_0_5=0b101100
@@ -446,7 +475,7 @@ with : prime=18 {
     { vufd = VSUBBC(dest, vufs, vuI); }
 :vsubq^dest vufd, vufs, Q     is Q & vuinst & dest & vuft=0b00000 & vufs & vufd & vuop_0_5=0b100100
     { vufd = VSUBBC(dest, vufs, Q); }
-:vsub^dest vufd, vufs, vuft^bc  is vuinst & dest & vuft & vufs & vufd & vuop_2_5=0b0001 & bc
+:vsub^_bc^dest vufd, vufs, vuft^bc  is vuinst & dest & vuft & vufs & vufd & vuop_2_5=0b0001 & bc & _bc
     { vufd = VSUBBC(dest, vufs, bc); }
 :vsuba^dest "ACC", vufs, vuft    is vuinst & dest & vuft & vufs & vuop_0_10=0b01011111100
     { vuACC = VSUB(dest, vufs, vuft); }
@@ -454,7 +483,7 @@ with : prime=18 {
     { vuACC = VSUBBC(dest, vufs, vuI); }
 :vsubaq^dest "ACC", vufs, Q   is Q & vuinst & dest & vuft=0b00000 & vufs & vuop_0_10=0b01001111100
     { vuACC = VSUBBC(dest, vufs, Q); }
-:vsuba^dest "ACC", vufs, vuft^bc is vuinst & dest & vuft & vufs & vuop_2_10=0b000011111 & bc
+:vsuba^_bc^dest "ACC", vufs, vuft^bc is vuinst & dest & vuft & vufs & vuop_2_10=0b000011111 & bc & _bc
     { vuACC = VSUBBC(dest, vufs, bc); }
 :vwaitq       is vuinst & vudest=0b0000 & vuft=0b00000 & vufs=0b00000 & vuop_0_10=0b01110111111
     { }
@@ -483,7 +512,7 @@ with : prime=18 {
 	build VUFLAGS;
 	vufd = VADDBC(dest, vufs, Q); 
 }
-:add^dest vufd, vufs, vuft^bc^VUFLAGS is VUFLAGS & dest & vuft & vufs & vufd & vuop_2_5=0b0000 & bc
+:add^_bc^dest vufd, vufs, vuft^bc^VUFLAGS is VUFLAGS & dest & vuft & vufs & vufd & vuop_2_5=0b0000 & bc & _bc
 {
 	build VUFLAGS;
 	vufd = VADDBC(dest, vufs, bc); 
@@ -507,12 +536,12 @@ with : prime=18 {
 	build VUFLAGS;
 	vuACC = VADDBC(dest, vufs, Q); 
 }
-:adda^dest "ACC", vufs, vuft^bc^VUFLAGS is VUFLAGS & dest & vuft & vufs & vuop_2_10=0b000001111 & bc
+:adda^_bc^dest "ACC", vufs, vuft^bc^VUFLAGS is VUFLAGS & dest & vuft & vufs & vuop_2_10=0b000001111 & bc & _bc
 {
 	build VUFLAGS;
 	vuACC = VADDBC(dest, vufs, bc); 
 }
-:clip"w.xyz" vufs, vuft^VUFLAGS is VUFLAGS & vudest=0b1110 & vuft & vufs & vuop_0_10=0b00111111111
+:clip"w.xyz" vufs^"xyz", vuft^"w"^VUFLAGS is VUFLAGS & vudest=0b1110 & vuft & vufs & vuop_0_10=0b00111111111
 {
 	build VUFLAGS;
 	tmp:3 = *[register]:3 &vuCF_32;
@@ -633,7 +662,7 @@ with : prime=18 {
 	build VUFLAGS;
 	vufd = VMADDBC(dest, vufs, Q); 
 }
-:madd^dest vufd, vufs, vuft^bc^VUFLAGS is VUFLAGS & dest & vuft & vufs & vufd & vuop_2_5=0b0010 & bc
+:madd^_bc^dest vufd, vufs, vuft^bc^VUFLAGS is VUFLAGS & dest & vuft & vufs & vufd & vuop_2_5=0b0010 & bc & _bc
 {
 	build VUFLAGS;
 	vufd = VMADDBC(dest, vufs, bc); 
@@ -657,7 +686,7 @@ with : prime=18 {
 	build VUFLAGS;
 	vuACC = VMADDBC(dest, vufs, Q); 
 }
-:madda^dest "ACC", vufs, vuft^bc^VUFLAGS is VUFLAGS & dest & vuft & vufs & vuop_2_10=0b000101111 & bc
+:madda^_bc^dest "ACC", vufs, vuft^bc^VUFLAGS is VUFLAGS & dest & vuft & vufs & vuop_2_10=0b000101111 & bc & _bc
 {
 	build VUFLAGS;
 	vuACC = VMADDBC(dest, vufs, bc); 
@@ -676,7 +705,7 @@ with : prime=18 {
 	build VUFLAGS;
 	vufd = VMAXBC(dest, vufs, vuI); 
 }
-:max^dest vufd, vufs, vuft^bc^VUFLAGS is VUFLAGS & dest & vuft & vufs & vufd & vuop_2_5=0b0100 & bc
+:max^_bc^dest vufd, vufs, vuft^bc^VUFLAGS is VUFLAGS & dest & vuft & vufs & vufd & vuop_2_5=0b0100 & bc & _bc
 {
 	build VUFLAGS;
 	vufd = VMAXBC(dest, vufs, bc); 
@@ -695,7 +724,7 @@ with : prime=18 {
 	build VUFLAGS;
 	vufd = VMINIBC(dest, vufs, vuI); 
 }
-:minibc^dest vufd, vufs, vuft^bc^VUFLAGS is VUFLAGS & dest & vuft & vufs & vufd & vuop_2_5=0b0101 & bc
+:mini^_bc^dest vufd, vufs, vuft^bc^VUFLAGS is VUFLAGS & dest & vuft & vufs & vufd & vuop_2_5=0b0101 & bc & _bc
 {
 	build VUFLAGS;
 	vufd = VMINIBC(dest, vufs, bc); 
@@ -719,7 +748,7 @@ with : prime=18 {
 	build VUFLAGS;
 	vufd = VMSUBBC(dest, vufs, Q); 
 }
-:msub^dest vufd, vufs, vuft^bc^VUFLAGS is VUFLAGS & dest & vuft & vufs & vufd & vuop_2_5=0b0011 & bc
+:msub^_bc^dest vufd, vufs, vuft^bc^VUFLAGS is VUFLAGS & dest & vuft & vufs & vufd & vuop_2_5=0b0011 & bc & _bc
 {
 	build VUFLAGS;
 	vufd = VMSUBBC(dest, vufs, bc); 
@@ -743,7 +772,7 @@ with : prime=18 {
 	build VUFLAGS;
 	vuACC = VMSUBBC(dest, vufs, Q); 
 }
-:msuba^dest "ACC", vufs, vuft^bc^VUFLAGS is VUFLAGS & dest & vuft & vufs & vuop_2_10=0b000111111 & bc
+:msuba^_bc^dest "ACC", vufs, vuft^bc^VUFLAGS is VUFLAGS & dest & vuft & vufs & vuop_2_10=0b000111111 & bc & _bc
 {
 	build VUFLAGS;
 	vuACC = VMSUBBC(dest, vufs, bc); 
@@ -767,7 +796,7 @@ with : prime=18 {
 	build VUFLAGS;
 	vufd = VMULBC(dest, vufs, Q); 
 }
-:mul^dest vufd, vufs, vuft^bc^VUFLAGS is VUFLAGS & dest & vuft & vufs & vufd & vuop_2_5=0b0110 & bc
+:mul^_bc^dest vufd, vufs, vuft^bc^VUFLAGS is VUFLAGS & dest & vuft & vufs & vufd & vuop_2_5=0b0110 & bc & _bc
 {
 	build VUFLAGS;
 	vufd = VMULBC(dest, vufs, bc); 
@@ -791,21 +820,21 @@ with : prime=18 {
 	build VUFLAGS;
 	vuACC = VMULBC(dest, vufs, Q); 
 }
-:mula^dest "ACC", vufs, vuft^bc^VUFLAGS is VUFLAGS & dest & vuft & vufs & vuop_2_10=0b001101111 & bc
+:mula^_bc^dest "ACC", vufs, vuft^bc^VUFLAGS is VUFLAGS & dest & vuft & vufs & vuop_2_10=0b001101111 & bc & _bc
 {
 	build VUFLAGS;
 	vuACC = VMULBC(dest, vufs, bc); 
 }
 :nop^VUFLAGS is VUFLAGS & vudest=0b0000 & vuft=0b00000 & vufs=0b00000 & vuop_0_10=0b01011111111{}
 :nop^VUFLAGS_L is VUFLAGS_L & longnop=0x33C080002FF {}
-:opmula."xyz" "ACC", vufs, vuft^VUFLAGS is VUFLAGS & vudest=0b1110 & vuft & vufs & vuop_0_10=0b01011111110
+:opmula."xyz" "ACC", vufs^"xyz", vuft^"xyz"^VUFLAGS is VUFLAGS & vudest=0b1110 & vuft & vufs & vuop_0_10=0b01011111110
 {
 	build VUFLAGS;
 	*[register]:4 &vuACCx = vufs[32,32] f* vuft[64,32];
 	*[register]:4 &vuACCy = vufs[64,32] f* vuft[0,32];
 	*[register]:4 &vuACCz = vufs[0,32] f* vuft[32,32];
 }
-:opmsub."xyz" vufd, vufs, vuft^VUFLAGS is VUFLAGS & vudest=0b1110 & vuft & vufs & vufd & vuop_0_5=0b101110
+:opmsub."xyz" vufd^"xyz", vufs^"xyz", vuft^"xyz"^VUFLAGS is VUFLAGS & vudest=0b1110 & vuft & vufs & vufd & vuop_0_5=0b101110
 {
 	build VUFLAGS;
 	vufd[0,32] = *[register]:4 &vuACCx f- vufs[32,32] f* vuft[64,32];
@@ -831,7 +860,7 @@ with : prime=18 {
 	build VUFLAGS;
 	vufd = VSUBBC(dest, vufs, Q); 
 }
-:sub^dest vufd, vufs, vuft^bc^VUFLAGS is VUFLAGS & dest & vuft & vufs & vufd & vuop_2_5=0b0001 & bc
+:sub^_bc^dest vufd, vufs, vuft^bc^VUFLAGS is VUFLAGS & dest & vuft & vufs & vufd & vuop_2_5=0b0001 & bc & _bc
 {
 	build VUFLAGS;
 	vufd = VSUBBC(dest, vufs, bc); 
@@ -855,7 +884,7 @@ with : prime=18 {
 	build VUFLAGS;
 	vuACC = VSUBBC(dest, vufs, Q); 
 }
-:suba^dest "ACC", vufs, vuft^bc^VUFLAGS is VUFLAGS & dest & vuft & vufs & vuop_2_10=0b000011111 & bc
+:suba^_bc^dest "ACC", vufs, vuft^bc^VUFLAGS is VUFLAGS & dest & vuft & vufs & vuop_2_10=0b000011111 & bc & _bc
 {
 	build VUFLAGS;
 	vuACC = VSUBBC(dest, vufs, bc); 

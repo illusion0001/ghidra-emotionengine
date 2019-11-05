@@ -31,7 +31,6 @@ public class PcodeInjectLibraryVu extends PcodeInjectLibrary {
     protected static final String VMSUBBC = "VMSUBBC";
     protected static final String VMUL = "VMUL";
     protected static final String VMULBC = "VMULBC";
-    protected static final String VFTOI0 = "VFTOI0";
     protected static final String VFTOI = "VFTOI";
     protected static final String VITOF = "VITOF";
     protected static final String VULQ = "VULQ";
@@ -70,13 +69,12 @@ public class PcodeInjectLibraryVu extends PcodeInjectLibrary {
     }
 
     private static Set<String> getVectorInstructions() {
-        Set<String> instructions = new HashSet<>(25);
+        Set<String> instructions = new HashSet<>(24);
         instructions.add(VABS);
         instructions.add(VADD);
         instructions.add(VADDBC);
         instructions.add(VMADD);
         instructions.add(VMADDBC);
-        instructions.add(VFTOI0);
         instructions.add(VFTOI);
         instructions.add(VITOF);
         instructions.add(VSUB);

@@ -61,7 +61,6 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 	private static final String END = "<end";
 	private static final String SEXT = "sext(";
     private static final String ABS = "abs";
-    private static final String FLOAT2FLOAT = "float2float";
 	private static final String INT2FLOAT = "int2float";
 	private static final String FLOAT_NAN = "nan";
     private static final String TRUNC = "trunc";
@@ -641,7 +640,6 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 		instructions.put(PcodeInjectLibraryVu.VMULBC, InjectPayloadVu::getOperationText3);
 		instructions.put(PcodeInjectLibraryVu.VMSUB, InjectPayloadVu::getMultiplyOperationText3);
 		instructions.put(PcodeInjectLibraryVu.VMSUBBC, InjectPayloadVu::getMultiplyOperationText3);
-		instructions.put(PcodeInjectLibraryVu.VFTOI0, InjectPayloadVu::getOperationText1);
 		instructions.put(PcodeInjectLibraryVu.VFTOI, InjectPayloadVu::getOperationText1);
 		instructions.put(PcodeInjectLibraryVu.VITOF, InjectPayloadVu::getOperationText1);
 		instructions.put(PcodeInjectLibraryVu.VULQ, InjectPayloadVu::getLoadText);
@@ -671,8 +669,7 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 		operations.put(PcodeInjectLibraryVu.VMULBC, FLOAT_MUL);
 		operations.put(PcodeInjectLibraryVu.VMSUB, FLOAT_SUB);
 		operations.put(PcodeInjectLibraryVu.VMSUBBC, FLOAT_SUB);
-		operations.put(PcodeInjectLibraryVu.VFTOI0, TRUNC);
-		operations.put(PcodeInjectLibraryVu.VFTOI, FLOAT2FLOAT);
+		operations.put(PcodeInjectLibraryVu.VFTOI, TRUNC);
 		operations.put(PcodeInjectLibraryVu.VITOF, INT2FLOAT);
 		return Collections.unmodifiableMap(operations);
 	}

@@ -244,13 +244,6 @@
         <output name="VUFD"/>
       </pcode>
   </callotherfixup>
-  <callotherfixup targetop="VFTOI0">
-      <pcode dynamic="true">
-        <input name="DEST"/>
-        <output name="VUFT"/>
-        <input name="VUFS"/>
-      </pcode>
-  </callotherfixup>
   <callotherfixup targetop="VFTOI">
       <pcode dynamic="true">
         <input name="DEST"/>

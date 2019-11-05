@@ -8,7 +8,6 @@ define pcodeop VADD;
 define pcodeop VADDBC;
 define pcodeop VCLIP;
 define pcodeop VDIV;
-define pcodeop VFTOI0;
 define pcodeop VFTOI;
 define pcodeop VIADD;
 define pcodeop VIADDI;
@@ -297,7 +296,7 @@ with : prime=18 {
     Q = fsf f/ ftf;
 }
 :vftoi0^dest vuft, vufs is vuinst & dest & vuft & vufs & vuop_0_10=0b00101111100
-    { vuft = VFTOI0(dest, vufs); }
+    { vuft = VFTOI(dest, vufs); }
 :vftoi4^dest vuft, vufs is vuinst & dest & vuft & vufs & vuop_0_10=0b00101111101
     { vuft = VFTOI(dest, vufs); }
 :vftoi12^dest vuft, vufs        is vuinst & dest & vuft & vufs & vuop_0_10=0b00101111110
@@ -563,12 +562,12 @@ with : prime=18 {
 {
 	build VI;
 	build VUFLAGS_L;
-	vuft_L = VFTOI0(dest_L, vufs_L); 
+	vuft_L = VFTOI(dest_L, vufs_L); 
 }
 :ftoi0^dest vuft, vufs^VUFLAGS is VUFLAGS & dest & vuft & vufs & vuop_0_10=0b00101111100
 {
 	build VUFLAGS;
-	vuft = VFTOI0(dest, vufs); 
+	vuft = VFTOI(dest, vufs); 
 }
 :ftoi4^dest_L vuft_L, vufs_L, VI^VUFLAGS_L is VUFLAGS_L & VI & dest_L & vuft_L & vufs_L & vuop_32_42=0b00101111101
 {

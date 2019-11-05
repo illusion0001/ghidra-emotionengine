@@ -595,16 +595,16 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 
 	private static String getMoveRotateText(InjectPayloadVu self) {
 		StringBuilder builder = new StringBuilder();
-		for(int i = 0; i < 4; i++) {
+		for(int i = 3; i >= 0; i--) {
 			if (((self.dest >> i) & 1) == 1) {
 				builder.append(VUFT)
 				.append(VECTOR_DIRECTIONS[i])
 				.append(ASSIGNMENT)
 				.append(VUFS);
-				if (i+1 >= VECTOR_DIRECTIONS.length) {
-					builder.append(VECTOR_DIRECTIONS[0]);
+				if (i-1 < 0) {
+					builder.append(VECTOR_DIRECTIONS[3]);
 				} else {
-					builder.append(VECTOR_DIRECTIONS[i+1]);
+					builder.append(VECTOR_DIRECTIONS[i-1]);
 				}
 				builder.append(END_LINE);
 			}

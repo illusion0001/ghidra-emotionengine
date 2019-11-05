@@ -478,9 +478,11 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 				.append(VUFS)
 				.append(VECTOR_DIRECTIONS[i])
 				.append(FLOAT_GREATER_THAN)
-				.append(VUFT)
-				.append(VECTOR_DIRECTIONS[i])
-				.append(')')
+				.append(VUFT);
+				if (!broadcast) {
+					builder.append(VECTOR_DIRECTIONS[i]);
+				}
+				builder.append(')')
 				.append(' ')
 				.append(GOTO)
 				.append(max)

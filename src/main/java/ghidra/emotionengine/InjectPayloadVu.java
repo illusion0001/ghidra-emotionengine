@@ -248,7 +248,7 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 	private String setZero(long dest, String register) {
 		final int MAX_STRING_LENGTH = 119;
 		StringBuilder builder = new StringBuilder(MAX_STRING_LENGTH);
-		for(int i = 0; i < 4; i++) {
+		for(int i = 3; i >= 0; i--) {
 			if (((dest >> i) & 1) == 1) {
 				builder.append(register)
 				.append(VECTOR_DIRECTIONS[i])
@@ -356,7 +356,7 @@ public class InjectPayloadVu extends InjectPayloadCallother {
     private static String getOperationText1(InjectPayloadVu self) {
 		StringBuilder builder = new StringBuilder();
 		String operation = OPERATIONS.get(self.name);
-		for(int i = 0; i < 4; i++) {
+		for(int i = 3; i >= 0; i--) {
 			if (((self.dest >> i) & 1) == 1) {
 				builder.append(VUFT)
 				.append(VECTOR_DIRECTIONS[i])
@@ -376,7 +376,7 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 		StringBuilder builder = new StringBuilder();
 		boolean broadcast = self.name.endsWith(BROADCAST);
 		String operation = OPERATIONS.get(self.name);
-		for(int i = 0; i < 4; i++) {
+		for(int i = 3; i >= 0; i--) {
 			if (((self.dest >> i) & 1) == 1) {
 				builder.append(VUFD)
 				.append(VECTOR_DIRECTIONS[i])
@@ -401,7 +401,7 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 		StringBuilder builder = new StringBuilder();
 		boolean broadcast = self.name.endsWith(BROADCAST);
 		String operation = OPERATIONS.get(self.name);
-		for(int i = 0; i < 4; i++) {
+		for(int i = 3; i >= 0; i--) {
 			if (((self.dest >> i) & 1) == 1) {
 				builder.append(VUFD)
 				.append(VECTOR_DIRECTIONS[i])
@@ -427,7 +427,7 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 	
 	private static String getLoadText(InjectPayloadVu self) {
             StringBuilder builder = new StringBuilder();
-            for(int i = 0; i < 4; i++) {
+            for(int i = 3; i >= 0; i--) {
                 if (((self.dest >> i) & 1) == 1) {
                     builder.append(VUFT)
                     .append(VECTOR_DIRECTIONS[i])
@@ -446,7 +446,7 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 	
 	private static String getStoreText(InjectPayloadVu self) {
 		StringBuilder builder = new StringBuilder();
-		for(int i = 0; i < 4; i++) {
+		for(int i = 3; i >= 0; i--) {
 			if (((self.dest >> i) & 1) == 1) {
 				builder.append(FLOAT_POINTER)
 					   .append('(')
@@ -466,7 +466,7 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 	private static String getMaxText(InjectPayloadVu self) {
 		boolean broadcast = self.name.endsWith(BROADCAST);
 		StringBuilder builder = new StringBuilder();
-		for(int i = 0; i < 4; i++) {
+		for(int i = 3; i >= 0; i--) {
 			if (((self.dest >> i) & 1) == 1) {
 				String max = new StringBuilder(MAX)
 							.append(Integer.toString(i))
@@ -515,7 +515,7 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 	private static String getMinText(InjectPayloadVu self) {
 		boolean broadcast = self.name.endsWith(BROADCAST);
 		StringBuilder builder = new StringBuilder();
-		for(int i = 0; i < 4; i++) {
+		for(int i = 3; i >= 0; i--) {
 			if (((self.dest >> i) & 1) == 1) {
 				String max = new StringBuilder(MIN)
 							.append(Integer.toString(i))
@@ -563,7 +563,7 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 
 	private static String getMFIRText(InjectPayloadVu self) {
 		StringBuilder builder = new StringBuilder();
-		for(int i = 0; i < 4; i++) {
+		for(int i = 3; i >= 0; i--) {
 			if (((self.dest >> i) & 1) == 1) {
 				builder.append(VUFT)
 				.append(VECTOR_DIRECTIONS[i])
@@ -580,7 +580,7 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 	private static String getMoveText(InjectPayloadVu self) {
 		StringBuilder builder = new StringBuilder();
 		boolean broadcast = self.name.endsWith(BROADCAST);
-		for(int i = 0; i < 4; i++) {
+		for(int i = 3; i >= 0; i--) {
 			if (((self.dest >> i) & 1) == 1) {
 				builder.append(VUFT)
 				.append(VECTOR_DIRECTIONS[i])
@@ -616,7 +616,7 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 
 	private static String clearRegister(InjectPayloadVu self) {
 		StringBuilder builder = new StringBuilder();
-		for(int i = 0; i < 4; i++) {
+		for(int i = 3; i >= 0; i--) {
 			if (((self.dest >> i) & 1) == 1) {
 				builder.append(VUFD)
 					   .append(VECTOR_DIRECTIONS[i])

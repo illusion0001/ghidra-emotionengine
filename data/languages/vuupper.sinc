@@ -48,6 +48,7 @@ define pcodeop VSQRT;
 define pcodeop VSUB;
 define pcodeop VSUBBC;
 define pcodeop VWAITQ;
+define pcodeop VCLEAR;
 
 INTERLOCK: "NI" is vuinterlock=0 { export 0:1; }
 INTERLOCK: "I"  is vuinterlock=1 { export 0:1; }
@@ -471,6 +472,9 @@ with : prime=18 {
 }
 :vsub^dest vufd, vufs, vuft     is vuinst & dest & vuft & vufs & vufd & vuop_0_5=0b101100
     { vufd = VSUB(dest, vufs, vuft); }
+# special case of vsub vufd, vufs, vufs
+:vmove^dest vufd, zero     is vuinst & zero & dest & vufd & (vufs=vuft) & vuop_0_5=0b101100
+    { vufd = VCLEAR(dest); }
 :vsubi^dest vufd, vufs, "I"     is vuinst & dest & vuft=0b00000 & vufs & vufd & vuop_0_5=0b100110
     { vufd = VSUBBC(dest, vufs, vuI); }
 :vsubq^dest vufd, vufs, Q     is Q & vuinst & dest & vuft=0b00000 & vufs & vufd & vuop_0_5=0b100100

@@ -120,6 +120,37 @@
         <register name="t5"/>
         <register name="t6"/>
         <register name="t7"/>
+        <register name="vf1"/>
+        <register name="vf2"/>
+        <register name="vf3"/>
+        <register name="vf4"/>
+        <register name="vf5"/>
+        <register name="vf6"/>
+        <register name="vf7"/>
+        <register name="vf8"/>
+        <register name="vf9"/>
+        <register name="vf10"/>
+        <register name="vf11"/>
+        <register name="vf12"/>
+        <register name="vf13"/>
+        <register name="vf14"/>
+        <register name="vf15"/>
+        <register name="vf16"/>
+        <register name="vf17"/>
+        <register name="vf18"/>
+        <register name="vf19"/>
+        <register name="vf20"/>
+        <register name="vf21"/>
+        <register name="vf22"/>
+        <register name="vf23"/>
+        <register name="vf24"/>
+        <register name="vf25"/>
+        <register name="vf26"/>
+        <register name="vf27"/>
+        <register name="vf28"/>
+        <register name="vf29"/>
+        <register name="vf30"/>
+        <register name="vf31"/>
       </killedbycall>      
       <likelytrash>
         <register name="s8"/>
@@ -306,6 +337,12 @@
         <input name="DEST"/>
         <input name="VUFS"/>
         <output name="VUFT"/>
+      </pcode>
+  </callotherfixup>
+  <callotherfixup targetop="VCLEAR">
+      <pcode dynamic="true">
+        <input name="DEST"/>
+        <output name="VUFD"/>
       </pcode>
   </callotherfixup>
 </compiler_spec>

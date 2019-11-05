@@ -44,6 +44,7 @@ public class PcodeInjectLibraryVu extends PcodeInjectLibrary {
     protected static final String VMOVE = "VMOVE";
     protected static final String VMOVEBC = "VMOVEBC";
     protected static final String VMR32 = "VMR32";
+    protected static final String VCLEAR = "VCLEAR";
 
     // mmi
     protected static final String LQ = "LQ";
@@ -69,7 +70,7 @@ public class PcodeInjectLibraryVu extends PcodeInjectLibrary {
     }
 
     private static Set<String> getVectorInstructions() {
-        Set<String> instructions = new HashSet<>(24);
+        Set<String> instructions = new HashSet<>(25);
         instructions.add(VABS);
         instructions.add(VADD);
         instructions.add(VADDBC);
@@ -94,6 +95,7 @@ public class PcodeInjectLibraryVu extends PcodeInjectLibrary {
         instructions.add(VMOVE);
         instructions.add(VMOVEBC);
         instructions.add(VMR32);
+        instructions.add(VCLEAR);
         return instructions;
     }
 

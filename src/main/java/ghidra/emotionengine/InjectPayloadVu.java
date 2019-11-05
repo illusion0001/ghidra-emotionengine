@@ -612,6 +612,20 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 		return builder.toString();
 	}
 
+	private static String clearRegister(InjectPayloadVu self) {
+		StringBuilder builder = new StringBuilder();
+		for(int i = 0; i < 4; i++) {
+			if (((self.dest >> i) & 1) == 1) {
+				builder.append(VUFD)
+					   .append(VECTOR_DIRECTIONS[i])
+					   .append(ASSIGNMENT)
+					   .append(ZERO[1])
+					   .append(END_LINE);
+			}
+		}
+		return builder.toString();
+	}
+
     private static Map<String, Function<InjectPayloadVu, String>> getInstructionMap() {
 		Map<String, Function<InjectPayloadVu, String>> instructions = new HashMap<>();
 		instructions.put(PcodeInjectLibraryVu.VABS, InjectPayloadVu::getOperationText1);
@@ -638,6 +652,7 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 		instructions.put(PcodeInjectLibraryVu.VMOVE, InjectPayloadVu::getMoveText);
 		instructions.put(PcodeInjectLibraryVu.VMOVEBC, InjectPayloadVu::getMoveText);
 		instructions.put(PcodeInjectLibraryVu.VMR32, InjectPayloadVu::getMoveRotateText);
+		instructions.put(PcodeInjectLibraryVu.VCLEAR, InjectPayloadVu::clearRegister);
 		return Collections.unmodifiableMap(instructions);
 	}
 	

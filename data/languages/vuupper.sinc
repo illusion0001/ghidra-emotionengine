@@ -490,6 +490,10 @@ with : prime=18 {
     { vuACC = VSUBBC(dest, vufs, bc); }
 :vwaitq       is vuinst & vudest=0b0000 & vuft=0b00000 & vufs=0b00000 & vuop_0_10=0b01110111111
     { }
+:vxitop VUIT is vuinst & vudest=0 & vuis=0 & vusimm11 & vulop11=0x6bd & VUIT & VIF0_ITOP [cUpper=1; globalset(inst_next, cUpper);] {
+	tmp:2 = *:2 VIF0_ITOP;
+	VUIT = zext(tmp[0,8]);
+}
 
 :abs^dest vuft, vufs^VUFLAGS is VUFLAGS & dest & vuft & vufs & vuop_0_10=0b00111111101
 {

@@ -218,3 +218,7 @@ with VUID: {
 
 VU_OFF_BASE_IT: vusimm11(VUIT) is vusimm11 & VUIT { tmp:4 = zext((VUIT + vusimm11))*16; export tmp; }
 VU_OFF_BASE_IS: vusimm11(VUIS) is vusimm11 & VUIS { tmp:4 = zext((VUIS + vusimm11))*16; export tmp; }
+VIF0_ITOP: is epsilon {tmp:4 = 0x100038d0; export tmp;}
+VIF1_ITOP: is epsilon {tmp:4 = 0x10003cd0; export tmp;}
+VIF1_TOP: is epsilon {tmp:4 = 0x10003ce0; export tmp;}
+D2_TADR: is VUIS { tmp:4 = 0x1000a030; export tmp;}

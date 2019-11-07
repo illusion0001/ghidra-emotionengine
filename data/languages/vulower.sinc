@@ -128,11 +128,18 @@ with : microMode=1 & cUpper=0 {
             VUIT = VUIT + 1;
         }
 
-        :xgkick VUIS is vudest=0 & vuft=0 & vusimm11 & vulop7=0x40 & vulop11=0x6fc & VUIS [cUpper=1; globalset(inst_next, cUpper);] {}
+        :xgkick VUIS is vudest=0 & vuft=0 & vusimm11 & vulop7=0x40 & vulop11=0x6fc & VUIS & D2_TADR [cUpper=1; globalset(inst_next, cUpper);] {
+            *:4 D2_TADR = $(BASE_DATA_ADDRESS) + zext(VUIS*8);
+        }
 
-        :xitop VUIT is vudest=0 & vuis=0 & vusimm11 & vulop7=0x40 & vulop11=0x6bd & VUIT [cUpper=1; globalset(inst_next, cUpper);] {}
+        :xitop VUIT is vudest=0 & vuis=0 & vusimm11 & vulop7=0x40 & vulop11=0x6bd & VUIT & VIF1_ITOP [cUpper=1; globalset(inst_next, cUpper);] {
+            tmp:2 = *:2 VIF1_ITOP;
+            VUIT = zext(tmp[0,10]);
+        }
 
-        :xtop VUIT is vudest=0 & vulop11=0x6bc & vuis=0 & vusimm11 & vulop7=0x40 & VUIT [cUpper=1; globalset(inst_next, cUpper);] {}
+        :xtop VUIT is vudest=0 & vulop11=0x6bc & vuis=0 & vusimm11 & vulop7=0x40 & VUIT & VIF1_TOP [cUpper=1; globalset(inst_next, cUpper);] {
+            VUIT = *:2 VIF1_TOP;
+        }
     }
 
     #ps2dev defines nop at move vf0,vf0

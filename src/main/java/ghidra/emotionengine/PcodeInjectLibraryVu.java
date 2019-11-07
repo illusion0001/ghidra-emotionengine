@@ -51,8 +51,6 @@ public class PcodeInjectLibraryVu extends PcodeInjectLibrary {
 
     protected static final Set<String> VECTOR_INSTRUCTIONS = Collections.unmodifiableSet(
         getVectorInstructions());
-    protected static final Set<String> MMI_INSTRUCTIONS = Collections.unmodifiableSet(
-        getMmiInstructions());
 
     public PcodeInjectLibraryVu(SleighLanguage l) {
         super(l);
@@ -97,13 +95,6 @@ public class PcodeInjectLibraryVu extends PcodeInjectLibrary {
         return instructions;
     }
 
-    private static Set<String> getMmiInstructions() {
-        Set<String> instructions = new HashSet<>(2);
-        instructions.add(LQ);
-        instructions.add(SQ);
-        return instructions;
-    }
-
     @Override
 	protected InjectPayloadSleigh allocateInject(String sourceName, String name, int tp) {
 		if (tp != InjectPayload.CALLOTHERFIXUP_TYPE) {
@@ -111,7 +102,7 @@ public class PcodeInjectLibraryVu extends PcodeInjectLibrary {
 		}
         if (VECTOR_INSTRUCTIONS.contains(name)) {
             return new InjectPayloadVu(sourceName, language);
-		}
+        }
 		return super.allocateInject(sourceName, name, InjectPayload.CALLOTHERFIXUP_TYPE);
     }
 
@@ -129,11 +120,14 @@ public class PcodeInjectLibraryVu extends PcodeInjectLibrary {
 				context);
 
 		synchronized (parser) {
-			OpTpl[] opTemplates = payload.getPcode(parser, program, context);
-			adjustUniqueBase(opTemplates);
-			//clear the added symbols so that the parser can be used again without
-			//duplicate symbol name conflicts.
-			parser.clearSymbols();
+            try {
+                OpTpl[] opTemplates = payload.getPcode(parser, program, context);
+                adjustUniqueBase(opTemplates);
+            } finally {
+                //clear the added symbols so that the parser can be used again without
+                //duplicate symbol name conflicts.
+                parser.clearSymbols();
+            }
 		}
 		return payload;
 	}

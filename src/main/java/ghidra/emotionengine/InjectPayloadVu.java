@@ -44,49 +44,22 @@ import ghidra.xml.XmlPullParser;
 import ghidra.xml.XmlPullParserFactory;
 
 public class InjectPayloadVu extends InjectPayloadCallother {
-    private SleighLanguage language;
-    private SAXParser saxParser;
 
-	private static final String FLOAT_ADD = " f+ ";
-	private static final String INT_ADD = " + ";
-	private static final String FLOAT_SUB = " f- ";
-	private static final String FLOAT_MUL = " f* ";
-	private static final String FLOAT_GREATER_THAN = " f> ";
-	private static final String FLOAT_LESS_THAN = " f< ";
-	private static final String ASSIGNMENT = " = ";
-	private static final String GOTO = "goto ";
-	private static final String IF = "if (";
-	private static final String MAX = "<max";
-	private static final String MIN = "<min";
-	private static final String END = "<end";
-	private static final String SEXT = "sext(";
+	private static final String EMPTY_STRING = "";
+	private static final String FLOAT_ADD = "f+";
+	private static final String FLOAT_SUB = "f-";
+	private static final String FLOAT_MUL = "f*";
     private static final String ABS = "abs";
 	private static final String INT2FLOAT = "int2float";
-	private static final String FLOAT_NAN = "nan";
     private static final String TRUNC = "trunc";
-	private static final String END_LINE = ";\n";
-	private static final String LOGICAL_OR = " || ";
 
     private static final String VUFD = "VUFD";
-    private static final String VUFS = "VUFS";
-	private static final String VUFT = "VUFT";
-	private static final String VUIS = "VUIS";
-	private static final String VUACC = "vuACC";
-
-	private static final String ADDRESS = "addr";
-	private static final String FLOAT_POINTER = "*:4 ";
 	private static final String BROADCAST = "BC";
 	private static final String VEC_ZERO = "vf0";
 
 	private static final String SUB = "SUB";
 	private static final String ADD = "ADD";
 
-	private static final String[] ZERO = new String[]{
-		"int2float(1:4)",
-		"int2float(0:4)",
-		"int2float(0:4)",
-		"int2float(0:4)"
-	};
     private static final String[] VECTOR_DIRECTIONS = new String[]{
         "[96,32]",
         "[64,32]",
@@ -94,38 +67,39 @@ public class InjectPayloadVu extends InjectPayloadCallother {
         "[0,32]"
 	};
 
-	private static final String[][] MAC = new String[][]{
-		new String[]{"vuMAC_32[0,1]", "vuMAC_32[1,1]", "vuMAC_32[2,1]", "vuMAC_32[3,1]"},
-		new String[]{"vuMAC_32[4,1]", "vuMAC_32[5,1]", "vuMAC_32[6,1]", "vuMAC_32[7,1]"},
-		new String[]{"vuMAC_32[8,1]", "vuMAC_32[9,1]", "vuMAC_32[10,1]", "vuMAC_32[11,1]"},
-		new String[]{"vuMAC_32[12,1]", "vuMAC_32[13,1]", "vuMAC_32[14,1]", "vuMAC_32[15,1]"}
-	};
+	private static final String ZERO_COND = "vuMAC_32[%d,1] = (VUFD%s == 0);\n";
+	private static final String LT_ZERO_COND = "vuMAC_32[%d,1] = (VUFD%s < 0);\n";
+	private static final String NAN_COND = "vuMAC_32[%d,1] = nan(VUFD%s);\n";
+	private static final String CLEAR_MAC = "vuMAC_32[%d,1] = 0;\n";
 
-	private static final String[] STATUS = new String[]{
-		"vuStatus_32[0,1]",
-		"vuStatus_32[1,1]",
-		"vuStatus_32[2,1]",
-		"vuStatus_32[3,1]",
-		"vuStatus_32[4,1]",
-		"vuStatus_32[5,1]",
-		"vuStatus_32[6,1]",
-		"vuStatus_32[7,1]",
-		"vuStatus_32[8,1]",
-		"vuStatus_32[9,1]",
-		"vuStatus_32[10,1]",
-		"vuStatus_32[11,1]"
-	};
-
-	private static final String OPEN_COND = "(";
-	private static final String ZERO_COND = " == 0";
-	private static final String LT_ZERO_COND = " < 0";
-	private static final String CLOSE_COND = ");\n";
-
-	protected long dest;
+	private static final String SET_ZERO = "%s%s = int2float(%d:4);\n";
+	private static final String STATUS_LOWER =
+		"vuStatus_32[%d,1] = vuMAC_32[%d,1] || vuMAC_32[%d,1]"
+		+" || vuMAC_32[%d,1] || vuMAC_32[%d,1];\n";
+	private static final String STATUS_UPPER =
+		"vuStatus_32[%1$d,1] = vuStatus_32[%1$d,1] || vuStatus_32[%2$d,1];\n";
+	private static final String OPERATION_1 ="VUFT%1$s = %2$s(VUFS%1$s);\n";
+	private static final String OPERATION_3 = "VUFD%1$s = VUFS%1$s %2$s VUFT%3$s;\n";
+	private static final String MULT_OPERATION_3 =
+		"VUFD%1$s = vuACC%1$s %2$s VUFS%1$s f* VUFT%3$s;\n";
+	private static final String LOAD_OPERATION = "VUFT%s = *:4 (addr + %d);\n";
+	private static final String STORE_OPERATION = "*:4 (addr + %d) = VUFS%s;\n";
+	private static final String MAX_OPERATION =
+		"if (VUFS%1$s f> VUFT%2$s) goto <max%3$d>;\nVUFD%1$s = VUFT%2$s;\n"
+		+"goto <end%3$d>;\n<max%3$d>\nVUFD%1$s = VUFS%1$s;\n<end%3$d>\n";
+	private static final String MIN_OPERATION =
+		"if (VUFS%1$s f< VUFT%2$s) goto <min%3$d>;\nVUFD%1$s = VUFT%2$s;\n"
+		+"goto <end%3$d>;\n<min%3$d>\nVUFD%1$s = VUFS%1$s;\n<end%3$d>\n";
+	private static final String MFIR_OPERATION = "VUFT%s = sext(VUIS);\n";
+	private static final String MOVE_OPERATION = "VUFT%s = VUFS%s;\n";
 	
 	private static final Map<String, Function<InjectPayloadVu, String>>
 		INSTRUCTIONS = getInstructionMap();
 	private static final Map<String, String> OPERATIONS = getOperationMap();
+
+	private SleighLanguage language;
+	private SAXParser saxParser;
+	protected long dest;
 
     public InjectPayloadVu(String sourceName, SleighLanguage language) {
 		super(sourceName);
@@ -246,16 +220,13 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 		return opTemplates;
 	}
 	
-	private String setZero(long dest, String register) {
+	private static String setZero(long dest, String register) {
 		final int MAX_STRING_LENGTH = 119;
 		StringBuilder builder = new StringBuilder(MAX_STRING_LENGTH);
 		for(int i = 3; i >= 0; i--) {
 			if (((dest >> i) & 1) == 1) {
-				builder.append(register)
-				.append(VECTOR_DIRECTIONS[i])
-				.append(ASSIGNMENT)
-				.append(ZERO[i])
-				.append(END_LINE);
+				builder.append(String.format(
+					SET_ZERO, register, VECTOR_DIRECTIONS[i], i == 0 ? 1 : 0));
 			}
 		}
 		return builder.toString();
@@ -264,51 +235,30 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 	private static final String buildMac(int index, String name) {
 		StringBuilder builder = new StringBuilder();
 		for (int i = 0; i < 4; i++) {
-			builder.append(MAC[i][index])
-				   .append(ASSIGNMENT);
+			int ordinal = (i << 2) + index;
 			switch(i) {
 				case 0:
 					// result == 0
-					builder.append(OPEN_COND)
-						   .append(VUFD)
-						   .append(VECTOR_DIRECTIONS[index])
-						   .append(ZERO_COND)
-						   .append(CLOSE_COND);
+					builder.append(String.format(ZERO_COND, ordinal, VECTOR_DIRECTIONS[index]));
 					break;
 				case 1:
 					// result < 0
-					builder.append(OPEN_COND)
-						   .append(VUFD)
-						   .append(VECTOR_DIRECTIONS[index])
-						   .append(LT_ZERO_COND)
-						   .append(CLOSE_COND);
+					builder.append(String.format(LT_ZERO_COND, ordinal, VECTOR_DIRECTIONS[index]));
 					break;
 				case 2:
 					// underflow
 					if (name.contains(SUB)) {
-						builder.append(FLOAT_NAN)
-							   .append('(')
-							   .append(VUFD)
-							   .append(VECTOR_DIRECTIONS[index])
-							   .append(')')
-							   .append(END_LINE);
+						builder.append(String.format(NAN_COND, ordinal, VECTOR_DIRECTIONS[index]));
 					} else {
-						builder.append('0')
-							   .append(END_LINE);
+						builder.append(String.format(CLEAR_MAC, ordinal));
 					}
 					break;
 				case 3:
 					// overflow
 					if (name.contains(ADD)) {
-						builder.append(FLOAT_NAN)
-							   .append('(')
-							   .append(VUFD)
-							   .append(VECTOR_DIRECTIONS[index])
-							   .append(')')
-							   .append(END_LINE);
+						builder.append(String.format(NAN_COND, ordinal, VECTOR_DIRECTIONS[index]));
 					} else {
-						builder.append('0')
-							   .append(END_LINE);
+						builder.append(String.format(CLEAR_MAC, ordinal));
 					}
 					break;
 				default:
@@ -321,10 +271,7 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 	private static String clearMac(int index) {
 		StringBuilder builder = new StringBuilder();
 		for (int i = 0; i < 4; i++) {
-			builder.append(MAC[i][index])
-				   .append(ASSIGNMENT)
-				   .append('0')
-				   .append(END_LINE);
+			builder.append(String.format(CLEAR_MAC, (i << 2) + index));
 		}
 		return builder.toString();
 	}
@@ -332,24 +279,12 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 	private static String buildStatus() {
 		StringBuilder builder = new StringBuilder();
 		for (int i = 0; i < 4; i++) {
-			builder.append(STATUS[i])
-				   .append(ASSIGNMENT)
-				   .append(MAC[i][0])
-				   .append(LOGICAL_OR)
-				   .append(MAC[i][1])
-				   .append(LOGICAL_OR)
-				   .append(MAC[i][2])
-				   .append(LOGICAL_OR)
-				   .append(MAC[i][3])
-				   .append(END_LINE);
+			int ordinal = i << 2;
+			builder.append(String.format(
+				STATUS_LOWER, i, ordinal++, ordinal++, ordinal++, ordinal));
 		}
 		for (int i = 6; i <= 9; i++) {
-			builder.append(STATUS[i])
-				   .append(ASSIGNMENT)
-				   .append(STATUS[i])
-				   .append(LOGICAL_OR)
-				   .append(STATUS[i-6])
-				   .append(END_LINE);
+			builder.append(String.format(STATUS_UPPER, i, i-6));
 		}
 		return builder.toString();
 	}
@@ -359,15 +294,8 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 		String operation = OPERATIONS.get(self.name);
 		for(int i = 3; i >= 0; i--) {
 			if (((self.dest >> i) & 1) == 1) {
-				builder.append(VUFT)
-				.append(VECTOR_DIRECTIONS[i])
-				.append(ASSIGNMENT)
-				.append(operation)
-				.append('(')
-				.append(VUFS)
-				.append(VECTOR_DIRECTIONS[i])
-				.append(')')
-				.append(END_LINE);
+				builder.append(String.format(
+					OPERATION_1, VECTOR_DIRECTIONS[i], operation));
 			}
 		}
 		return builder.toString();
@@ -379,18 +307,10 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 		String operation = OPERATIONS.get(self.name);
 		for(int i = 3; i >= 0; i--) {
 			if (((self.dest >> i) & 1) == 1) {
-				builder.append(VUFD)
-				.append(VECTOR_DIRECTIONS[i])
-				.append(ASSIGNMENT)
-				.append(VUFS)
-				.append(VECTOR_DIRECTIONS[i])
-				.append(operation)
-				.append(VUFT);
-				if (!broadcast) {
-					builder.append(VECTOR_DIRECTIONS[i]);
-				}
-				builder.append(END_LINE)
-					   .append(buildMac(i, self.name));
+				builder.append(String.format(OPERATION_3,
+					VECTOR_DIRECTIONS[i], operation,
+					broadcast ? EMPTY_STRING : VECTOR_DIRECTIONS[i]))
+					.append(buildMac(i, self.name));
 			} else {
 				builder.append(clearMac(i));
 			}
@@ -404,21 +324,10 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 		String operation = OPERATIONS.get(self.name);
 		for(int i = 3; i >= 0; i--) {
 			if (((self.dest >> i) & 1) == 1) {
-				builder.append(VUFD)
-				.append(VECTOR_DIRECTIONS[i])
-				.append(ASSIGNMENT)
-				.append(VUACC)
-				.append(VECTOR_DIRECTIONS[i])
-				.append(operation)
-				.append(VUFS)
-				.append(VECTOR_DIRECTIONS[i])
-				.append(FLOAT_MUL)
-				.append(VUFT);
-				if (!broadcast) {
-					builder.append(VECTOR_DIRECTIONS[i]);
-				}
-				builder.append(END_LINE)
-					   .append(buildMac(i, self.name));
+				builder.append(String.format(MULT_OPERATION_3,
+					VECTOR_DIRECTIONS[i], operation,
+					broadcast ? EMPTY_STRING : VECTOR_DIRECTIONS[i]))
+					.append(buildMac(i, self.name));
 			} else {
 				builder.append(clearMac(i));
 			}
@@ -430,16 +339,7 @@ public class InjectPayloadVu extends InjectPayloadCallother {
             StringBuilder builder = new StringBuilder();
             for(int i = 3; i >= 0; i--) {
                 if (((self.dest >> i) & 1) == 1) {
-                    builder.append(VUFT)
-                    .append(VECTOR_DIRECTIONS[i])
-                    .append(ASSIGNMENT)
-					.append(FLOAT_POINTER)
-					.append('(')
-					.append(ADDRESS)
-					.append(INT_ADD)
-					.append(Integer.toString(4*i))
-					.append(')')
-					.append(END_LINE);
+					builder.append(String.format(LOAD_OPERATION, VECTOR_DIRECTIONS[i], i << 2));
                 }
             }
             return builder.toString();
@@ -449,16 +349,7 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 		StringBuilder builder = new StringBuilder();
 		for(int i = 3; i >= 0; i--) {
 			if (((self.dest >> i) & 1) == 1) {
-				builder.append(FLOAT_POINTER)
-					   .append('(')
-					   .append(ADDRESS)
-					   .append(INT_ADD)
-					   .append(Integer.toString(4*i))
-					   .append(')')
-					   .append(ASSIGNMENT)
-					   .append(VUFS)
-					   .append(VECTOR_DIRECTIONS[i])
-					   .append(END_LINE);
+				builder.append(String.format(STORE_OPERATION, i << 2, VECTOR_DIRECTIONS[i]));
 			}
 		}
 		return builder.toString();
@@ -469,46 +360,9 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 		StringBuilder builder = new StringBuilder();
 		for(int i = 3; i >= 0; i--) {
 			if (((self.dest >> i) & 1) == 1) {
-				String max = new StringBuilder(MAX)
-							.append(Integer.toString(i))
-							.append('>').toString();
-				String end = new StringBuilder(END)
-							.append(Integer.toString(i))
-							.append('>').toString();
-				builder.append(IF)
-				.append(VUFS)
-				.append(VECTOR_DIRECTIONS[i])
-				.append(FLOAT_GREATER_THAN)
-				.append(VUFT);
-				if (!broadcast) {
-					builder.append(VECTOR_DIRECTIONS[i]);
-				}
-				builder.append(')')
-				.append(' ')
-				.append(GOTO)
-				.append(max)
-				.append(END_LINE)
-				.append(VUFD)
-				.append(VECTOR_DIRECTIONS[i])
-				.append(ASSIGNMENT)
-				.append(VUFT);
-				if (!broadcast) {
-					builder.append(VECTOR_DIRECTIONS[i]);
-				}
-				builder.append(END_LINE)
-				.append(GOTO)
-				.append(end)
-				.append(END_LINE)
-				.append(max)
-				.append('\n')
-				.append(VUFD)
-				.append(VECTOR_DIRECTIONS[i])
-				.append(ASSIGNMENT)
-				.append(VUFS)
-				.append(VECTOR_DIRECTIONS[i])
-				.append(END_LINE)
-				.append(end)
-				.append('\n');
+				builder.append(String.format(
+					MAX_OPERATION, VECTOR_DIRECTIONS[i],
+					broadcast ? EMPTY_STRING : VECTOR_DIRECTIONS[i], i));
 			}
 		}
 		return builder.toString();
@@ -519,46 +373,9 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 		StringBuilder builder = new StringBuilder();
 		for(int i = 3; i >= 0; i--) {
 			if (((self.dest >> i) & 1) == 1) {
-				String max = new StringBuilder(MIN)
-							.append(Integer.toString(i))
-							.append('>').toString();
-				String end = new StringBuilder(END)
-							.append(Integer.toString(i))
-							.append('>').toString();
-				builder.append(IF)
-				.append(VUFS)
-				.append(VECTOR_DIRECTIONS[i])
-				.append(FLOAT_LESS_THAN)
-				.append(VUFT);
-				if (!broadcast) {
-					builder.append(VECTOR_DIRECTIONS[i]);
-				}
-				builder.append(')')
-				.append(' ')
-				.append(GOTO)
-				.append(max)
-				.append(END_LINE)
-				.append(VUFD)
-				.append(VECTOR_DIRECTIONS[i])
-				.append(ASSIGNMENT)
-				.append(VUFT);
-				if (!broadcast) {
-					builder.append(VECTOR_DIRECTIONS[i]);
-				}
-				builder.append(END_LINE)
-				.append(GOTO)
-				.append(end)
-				.append(END_LINE)
-				.append(max)
-				.append('\n')
-				.append(VUFD)
-				.append(VECTOR_DIRECTIONS[i])
-				.append(ASSIGNMENT)
-				.append(VUFS)
-				.append(VECTOR_DIRECTIONS[i])
-				.append(END_LINE)
-				.append(end)
-				.append('\n');
+				builder.append(String.format(
+					MIN_OPERATION, VECTOR_DIRECTIONS[i],
+					broadcast ? EMPTY_STRING : VECTOR_DIRECTIONS[i], i));
 			}
 		}
 		return builder.toString();
@@ -568,13 +385,7 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 		StringBuilder builder = new StringBuilder();
 		for(int i = 3; i >= 0; i--) {
 			if (((self.dest >> i) & 1) == 1) {
-				builder.append(VUFT)
-				.append(VECTOR_DIRECTIONS[i])
-				.append(ASSIGNMENT)
-				.append(SEXT)
-				.append(VUIS)
-				.append(')')
-				.append(END_LINE);
+				builder.append(String.format(MFIR_OPERATION, VECTOR_DIRECTIONS[i]));
 			}
 		}
 		return builder.toString();
@@ -585,14 +396,9 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 		boolean broadcast = self.name.endsWith(BROADCAST);
 		for(int i = 3; i >= 0; i--) {
 			if (((self.dest >> i) & 1) == 1) {
-				builder.append(VUFT)
-				.append(VECTOR_DIRECTIONS[i])
-				.append(ASSIGNMENT)
-				.append(VUFS);
-				if (!broadcast) {
-					builder.append(VECTOR_DIRECTIONS[i]);
-				}
-				builder.append(END_LINE);
+				builder.append(String.format(
+					MOVE_OPERATION, VECTOR_DIRECTIONS[i],
+					broadcast ? EMPTY_STRING : VECTOR_DIRECTIONS[i]));
 			}
 		}
 		return builder.toString();
@@ -602,16 +408,8 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 		StringBuilder builder = new StringBuilder();
 		for(int i = 3; i >= 0; i--) {
 			if (((self.dest >> i) & 1) == 1) {
-				builder.append(VUFT)
-				.append(VECTOR_DIRECTIONS[i])
-				.append(ASSIGNMENT)
-				.append(VUFS);
-				if (i-1 < 0) {
-					builder.append(VECTOR_DIRECTIONS[3]);
-				} else {
-					builder.append(VECTOR_DIRECTIONS[i-1]);
-				}
-				builder.append(END_LINE);
+				builder.append(String.format(
+					MOVE_OPERATION, VECTOR_DIRECTIONS[i], VECTOR_DIRECTIONS[i-1 < 0 ? 3 : i-1]));
 			}
 		}
 		return builder.toString();
@@ -621,11 +419,7 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 		StringBuilder builder = new StringBuilder();
 		for(int i = 3; i >= 0; i--) {
 			if (((self.dest >> i) & 1) == 1) {
-				builder.append(VUFD)
-					   .append(VECTOR_DIRECTIONS[i])
-					   .append(ASSIGNMENT)
-					   .append(ZERO[1])
-					   .append(END_LINE);
+				builder.append(String.format(SET_ZERO, VUFD, VECTOR_DIRECTIONS[i], 0));
 			}
 		}
 		return builder.toString();

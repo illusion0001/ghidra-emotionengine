@@ -134,7 +134,7 @@ with : microMode=1 & cUpper=0 {
 
         :xitop VUIT is vudest=0 & vuis=0 & vusimm11 & vulop7=0x40 & vulop11=0x6bd & VUIT & VIF1_ITOP [cUpper=1; globalset(inst_next, cUpper);] {
             tmp:2 = *:2 VIF1_ITOP;
-            VUIT = zext(tmp[0,10]);
+            VUIT = tmp[0,10];
         }
 
         :xtop VUIT is vudest=0 & vulop11=0x6bc & vuis=0 & vusimm11 & vulop7=0x40 & VUIT & VIF1_TOP [cUpper=1; globalset(inst_next, cUpper);] {

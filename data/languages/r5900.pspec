@@ -27,6 +27,9 @@
         <register name="cUpper" hidden="true"/>
         <register name="cM" hidden="true"/>
         <register name="cE" hidden="true"/>
+        <register name="vuCF_32" hidden="true"/>
+        <register name="vuStatus_32" hidden="true"/>
+        <register name="vuMAC_32" hidden="true"/>
         <register name="fsa" rename="sa"/>
         <register name="vf0" vector_lane_sizes="4"/>
         <register name="vf1" vector_lane_sizes="4"/>
@@ -61,10 +64,40 @@
         <register name="vf30" vector_lane_sizes="4"/>
         <register name="vf31" vector_lane_sizes="4"/>
         <register name="vuACC" vector_lane_sizes="4"/>
+<<<<<<< HEAD
+=======
+        
+>>>>>>> 1a9dc926c248ede3cf80b1c070c8b8208de6e924
         <register name="zero_qw" vector_lane_sizes="1,2,4,8"/>
         <register name="at_qw" vector_lane_sizes="1,2,4,8"/>
         <register name="v0_qw" vector_lane_sizes="1,2,4,8"/>
         <register name="v1_qw" vector_lane_sizes="1,2,4,8"/>
+<<<<<<< HEAD
+=======
+        <register name="a0_qw" vector_lane_sizes="1,2,4,8"/>
+        <register name="a1_qw" vector_lane_sizes="1,2,4,8"/>
+        <register name="a2_qw" vector_lane_sizes="1,2,4,8"/>
+        <register name="a3_qw" vector_lane_sizes="1,2,4,8"/>
+        <register name="t0_qw" vector_lane_sizes="1,2,4,8"/>
+        <register name="t1_qw" vector_lane_sizes="1,2,4,8"/>
+        <register name="t2_qw" vector_lane_sizes="1,2,4,8"/>
+        <register name="t3_qw" vector_lane_sizes="1,2,4,8"/>
+        <register name="t4_qw" vector_lane_sizes="1,2,4,8"/>
+        <register name="t5_qw" vector_lane_sizes="1,2,4,8"/>
+        <register name="t6_qw" vector_lane_sizes="1,2,4,8"/>
+        <register name="t7_qw" vector_lane_sizes="1,2,4,8"/>
+        <register name="s0_qw" vector_lane_sizes="1,2,4,8"/>
+        <register name="s1_qw" vector_lane_sizes="1,2,4,8"/>
+        <register name="s2_qw" vector_lane_sizes="1,2,4,8"/>
+        <register name="s3_qw" vector_lane_sizes="1,2,4,8"/>
+        <register name="s4_qw" vector_lane_sizes="1,2,4,8"/>
+        <register name="s5_qw" vector_lane_sizes="1,2,4,8"/>
+        <register name="s6_qw" vector_lane_sizes="1,2,4,8"/>
+        <register name="s7_qw" vector_lane_sizes="1,2,4,8"/>
+        <register name="t8_qw" vector_lane_sizes="1,2,4,8"/>
+        <register name="t9_qw" vector_lane_sizes="1,2,4,8"/>
+    </register_data>
+>>>>>>> 1a9dc926c248ede3cf80b1c070c8b8208de6e924
 
         <register name="a0_qw" vector_lane_sizes="1,2,4,8"/>
         <register name="a1_qw" vector_lane_sizes="1,2,4,8"/>

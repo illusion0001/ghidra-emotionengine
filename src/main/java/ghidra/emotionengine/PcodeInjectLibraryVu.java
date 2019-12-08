@@ -11,6 +11,7 @@ import ghidra.program.model.lang.InjectPayload;
 import ghidra.program.model.lang.InjectPayloadSleigh;
 import ghidra.program.model.lang.PcodeInjectLibrary;
 import ghidra.program.model.listing.Program;
+import ghidra.util.Msg;
 
 import org.jdom.JDOMException;
 
@@ -45,8 +46,7 @@ public class PcodeInjectLibraryVu extends PcodeInjectLibrary {
     protected static final String VMR32 = "VMR32";
     protected static final String VCLEAR = "VCLEAR";
 
-    protected static final Set<String> VECTOR_INSTRUCTIONS = Collections.unmodifiableSet(
-        getVectorInstructions());
+    protected static final Set<String> VECTOR_INSTRUCTIONS = getVectorInstructions();
 
     public PcodeInjectLibraryVu(SleighLanguage l) {
         super(l);
@@ -58,12 +58,12 @@ public class PcodeInjectLibraryVu extends PcodeInjectLibrary {
 			parser = new PcodeParser(translateSpec);
 		}
 		catch (JDOMException e1) {
-			e1.printStackTrace();
+			Msg.error(this, e1);
 		}
     }
 
-    private static Set<String> getVectorInstructions() {
-        Set<String> instructions = new HashSet<>(24);
+    static Set<String> getVectorInstructions() {
+        Set<String> instructions = new HashSet<>();
         instructions.add(VABS);
         instructions.add(VADD);
         instructions.add(VADDBC);
@@ -88,7 +88,7 @@ public class PcodeInjectLibraryVu extends PcodeInjectLibrary {
         instructions.add(VMOVEBC);
         instructions.add(VMR32);
         instructions.add(VCLEAR);
-        return instructions;
+        return Collections.unmodifiableSet(instructions);
     }
 
     @Override

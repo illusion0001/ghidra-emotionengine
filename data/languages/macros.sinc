@@ -1,6 +1,6 @@
 
 macro setMin(dest,srcRS,srcRT) {
-    if (srcRS > srcRT) goto <maxRS>;
+    if (srcRS s> srcRT) goto <maxRS>;
     dest = srcRS;
     goto <end>;
     <maxRS>
@@ -9,7 +9,7 @@ macro setMin(dest,srcRS,srcRT) {
 }
 
 macro setMax(dest,srcRS,srcRT) {
-    if (srcRS > srcRT) goto <maxRS>;
+    if (srcRS s> srcRT) goto <maxRS>;
     dest = srcRT;
     goto <end>;
     <maxRS>

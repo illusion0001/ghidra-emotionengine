@@ -46,15 +46,25 @@ eclipse.classpath.file.whenMerged {
 	File javaDoc = new File(ghidraInstallDir+"/docs/GhidraAPI_javadoc.zip");
 	def destroy = [];
 	for (entry in entries) {
-		if (entry.getPath().toString().contains("emotionengine")) {
-			destroy.add(entry);
-			continue;
-		} else if (entry.path.contains('jar')) {
+		if (entry.path.contains('jython-standalone-2.7.1')) {
 			File folder = new File(entry.getPath()).getParentFile();
-			for (File file : folder.listFiles()) {
-				if (file.getName().endsWith(".zip")) {
-					entry.setSourcePath(it.fileReference(file));
-					entry.setJavadocPath(it.fileReference(javaDoc));
+				for (File file : folder.listFiles()) {
+					if (file.getName().contains('-sources')) {
+						entry.setSourcePath(it.fileReference(file));
+					} else if (file.getName().contains('-javadoc')) {
+						entry.setJavadocPath(it.fileReference(javaDoc));
+					}
+				}
+		} else if (entry.path.contains('jar')) {
+			if (entry.getPath().toString().contains("emotionengine")) {
+				destroy.add(entry);
+			} else {
+				File folder = new File(entry.getPath()).getParentFile();
+				for (File file : folder.listFiles()) {
+					if (file.getName().endsWith(".zip")) {
+						entry.setSourcePath(it.fileReference(file));
+						entry.setJavadocPath(it.fileReference(javaDoc));
+					}
 				}
 			}
 		}

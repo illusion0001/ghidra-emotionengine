@@ -45,10 +45,6 @@ public class PcodeInjectLibraryVu extends PcodeInjectLibrary {
     protected static final String VMR32 = "VMR32";
     protected static final String VCLEAR = "VCLEAR";
 
-    // mmi
-    protected static final String LQ = "LQ";
-    protected static final String SQ = "SQ";
-
     protected static final Set<String> VECTOR_INSTRUCTIONS = Collections.unmodifiableSet(
         getVectorInstructions());
 

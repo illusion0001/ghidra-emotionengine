@@ -12,7 +12,7 @@ define pcodeop VCALLMS;
 define pcodeop VCALLMSR;
 
 # COP2 floating point registers
-define register offset=0x4100 size=16 [
+define register offset=0x4000 size=16 [
     vf0     vf1     vf2     vf3
     vf4     vf5     vf6     vf7
     vf8     vf9     vf10    vf11
@@ -23,7 +23,7 @@ define register offset=0x4100 size=16 [
     vf28    vf29    vf30    vf31
 ];
 
-define register offset=0x4100 size=4 [
+define register offset=0x4000 size=4 [
     vf0x        vf0y        vf0z        vf0w
     vf1x        vf1y        vf1z        vf1w
     vf2x        vf2y        vf2z        vf2w
@@ -58,7 +58,7 @@ define register offset=0x4100 size=4 [
     vf31x       vf31y       vf31z       vf31w
 ];
 
-define register offset=0x4300 size=2 [
+define register offset=0x4200 size=2 [
      vi0  _ _ _  _ _ _ _
      vi1  _ _ _  _ _ _ _
      vi2  _ _ _  _ _ _ _
@@ -164,7 +164,7 @@ vuinst: is prime=18 & vuco=1 & microMode=0 { export 0:1; }
 
 with : microMode=1 & vuco=0 & vuco1=0 {
     with V1E: {
-        : " [E]" is vucE=1 [cE=1; globalset(inst_next, cE);] { delayslot(2); return [0:4]; }
+        : " [E]" is vucE=1 [cE=1; globalset(inst_next, cE);] { delayslot(9); return [0:4]; }
         : is vucE=0 {}
     }
     with V1M: {
@@ -204,7 +204,7 @@ VUFLAGS:^V1E^V1M^V1D^V1T is cUpper=1 & V1E & V1M & V1D & V1T [cUpper=0; globalse
 VUFLAGS_L:^V1E_L^V1M_L^V1D_L^V1T_L is V1E_L & V1M_L & V1D_L & V1T_L { build V1D_L; build V1T_L; }
 
 with VUIT: {
-    :vuit is vuit { export vuit; }
+    :vuit is vuit & vuit_val > 0 & vuit_val <= 15 { export vuit; }
     :vuit is vuit & vuit=0 { export 0:2; }
 }
 with VUIS: {

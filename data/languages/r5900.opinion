@@ -1,5 +1,5 @@
 <opinions>
-    <constraint loader="Executable and Linking Format (ELF)" compilerSpecID="default">
+    <constraint loader="Emotion Engine Loader" compilerSpecID="default">
 
         <constraint primary="8,10"    processor="MIPS" />
 
@@ -12,7 +12,7 @@ Elf e_flags are used for the secondary attribute, the following are pulled from 
 0x00000004      EF_MIPS_CPIC            leftover from IRIX pic (don't care)
 0x00000008      EF_MIPS_XGOT            large GOT (don't care)
 
-0x00000000                              When arch is MIPS64, then 0s in bits 4-7 means n64 ABI 64-bit addresses 
+0x00000000                              When arch is MIPS64, then 0s in bits 4-7 means n64 ABI 64-bit addresses
                                         When arch is MIPS32, means o32 ABI, 32-bit addresses
 0x00000010      EF_MIPS_UCODE		obsolete
 0x00000020      EF_MIPS_ABI2            n32 abi 32-bit addresses, used with MIPS64, similar to n64
@@ -48,8 +48,8 @@ Elf e_flags are used for the secondary attribute, the following are pulled from 
 -->
 
     <constraint primary="8,10" processor="MIPS-R5900" size="32" variant="PS2"
-		  secondary= "0b 0010 .... 1001 0010 .... 0.0. 0000 ...."/>
-    <constraint primary="8,10" processor="MIPS-R5900" size="32" variant="PS2"
+		  secondary= "0b 0010 .... 1001 0010 .... 0.0. 00.0 ...."/>
+    <constraint primary="8,10" processor="MIPS-R3000" size="32" variant="PS2"
 		  secondary= "0b 0000 0000 .... .... .... 0.0. 0000 ...."/>
     </constraint>
 

@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
- *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ *	  http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -49,22 +49,22 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 	private static final String FLOAT_ADD = "f+";
 	private static final String FLOAT_SUB = "f-";
 	private static final String FLOAT_MUL = "f*";
-    private static final String ABS = "abs";
+	private static final String ABS = "abs";
 	private static final String INT2FLOAT = "int2float";
-    private static final String TRUNC = "trunc";
+	private static final String TRUNC = "trunc";
 
-    private static final String VUFD = "VUFD";
+	private static final String VUFD = "VUFD";
 	private static final String BROADCAST = "BC";
 	private static final String VEC_ZERO = "vf0";
 
 	private static final String SUB = "SUB";
 	private static final String ADD = "ADD";
 
-    private static final String[] VECTOR_DIRECTIONS = new String[]{
-        "[96,32]",
-        "[64,32]",
-        "[32,32]",
-        "[0,32]"
+	private static final String[] VECTOR_DIRECTIONS = new String[]{
+		"[96,32]",
+		"[64,32]",
+		"[32,32]",
+		"[0,32]"
 	};
 
 	private static final String ZERO_COND = "vuMAC_32[%d,1] = (VUFD%s == 0);\n";
@@ -92,7 +92,7 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 		+"goto <end%3$d>;\n<min%3$d>\nVUFD%1$s = VUFS%1$s;\n<end%3$d>\n";
 	private static final String MFIR_OPERATION = "VUFT%s = sext(VUIS);\n";
 	private static final String MOVE_OPERATION = "VUFT%s = VUFS%s;\n";
-	
+
 	private static final Map<String, Function<InjectPayloadVu, String>>
 		INSTRUCTIONS = getInstructionMap();
 	private static final Map<String, String> OPERATIONS = getOperationMap();
@@ -101,7 +101,7 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 	private SAXParser saxParser;
 	protected long dest;
 
-    public InjectPayloadVu(String sourceName, SleighLanguage language) {
+	public InjectPayloadVu(String sourceName, SleighLanguage language) {
 		super(sourceName);
 		this.language = language;
 		try {
@@ -220,7 +220,7 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 		setTemplate(constructTpl);
 		return opTemplates;
 	}
-	
+
 	private static String setZero(long dest, String register) {
 		final int MAX_STRING_LENGTH = 119;
 		StringBuilder builder = new StringBuilder(MAX_STRING_LENGTH);
@@ -290,7 +290,7 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 		return builder.toString();
 	}
 
-    private static String getOperationText1(InjectPayloadVu self) {
+	private static String getOperationText1(InjectPayloadVu self) {
 		StringBuilder builder = new StringBuilder();
 		String operation = OPERATIONS.get(self.name);
 		for(int i = 3; i >= 0; i--) {
@@ -302,7 +302,7 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 		return builder.toString();
 	}
 
-    private static String getOperationText3(InjectPayloadVu self) {
+	private static String getOperationText3(InjectPayloadVu self) {
 		StringBuilder builder = new StringBuilder();
 		boolean broadcast = self.name.endsWith(BROADCAST);
 		String operation = OPERATIONS.get(self.name);
@@ -318,7 +318,7 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 		}
 		return builder.append(buildStatus()).toString();
 	}
-	
+
 	private static String getMultiplyOperationText3(InjectPayloadVu self) {
 		StringBuilder builder = new StringBuilder();
 		boolean broadcast = self.name.endsWith(BROADCAST);
@@ -335,17 +335,17 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 		}
 		return builder.append(buildStatus()).toString();
 	}
-	
+
 	private static String getLoadText(InjectPayloadVu self) {
-            StringBuilder builder = new StringBuilder();
-            for(int i = 3; i >= 0; i--) {
-                if (((self.dest >> i) & 1) == 1) {
+			StringBuilder builder = new StringBuilder();
+			for(int i = 3; i >= 0; i--) {
+				if (((self.dest >> i) & 1) == 1) {
 					builder.append(String.format(LOAD_OPERATION, VECTOR_DIRECTIONS[i], i << 2));
-                }
-            }
-            return builder.toString();
+				}
+			}
+			return builder.toString();
 	}
-	
+
 	private static String getStoreText(InjectPayloadVu self) {
 		StringBuilder builder = new StringBuilder();
 		for(int i = 3; i >= 0; i--) {
@@ -426,7 +426,7 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 		return builder.toString();
 	}
 
-    private static Map<String, Function<InjectPayloadVu, String>> getInstructionMap() {
+	private static Map<String, Function<InjectPayloadVu, String>> getInstructionMap() {
 		Map<String, Function<InjectPayloadVu, String>> instructions = new HashMap<>();
 		instructions.put(PcodeInjectLibraryVu.VABS, InjectPayloadVu::getOperationText1);
 		instructions.put(PcodeInjectLibraryVu.VADD, InjectPayloadVu::getOperationText3);
@@ -454,7 +454,7 @@ public class InjectPayloadVu extends InjectPayloadCallother {
 		instructions.put(PcodeInjectLibraryVu.VCLEAR, InjectPayloadVu::clearRegister);
 		return Collections.unmodifiableMap(instructions);
 	}
-	
+
 	private static Map<String, String> getOperationMap() {
 		Map<String, String> operations = new HashMap<>();
 		operations.put(PcodeInjectLibraryVu.VABS, ABS);

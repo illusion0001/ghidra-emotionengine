@@ -31,7 +31,7 @@ attach variables [ fs_fcr ] [
 	_		fccr	fexr	_		fenr	_		_		fcsr
 ];
 
-with : prime=17 & microMode=0 {  #COP1
+with : prime=17 {  #COP1
 	# 0100 01ff fff0 0000 ssss sddd dd00 0101
 	:abs.S fd, fs               		is microMode=0 & fct=5 & format=0x10 & fs & fd {
 	    fd = abs(fs);
@@ -56,10 +56,9 @@ with : prime=17 & microMode=0 {  #COP1
 
 
 	# 0100 0101 0000 0010 iiii iiii iiii iiii
-	:bc1fl Rel16                    	is microMode=0 & copop=8 & copfct=2 & Rel16 {
-	    tmp:1 = fcsr[23,1]; # The floating point condition bit
+	:bc1fl Rel16                    	is copop=8 & copfct=2 & Rel16 {
+	    if (fcsr[23,1] != 0) goto inst_next;
 	    delayslot(1);
-	    if (tmp != 0) goto inst_next;
 	    goto Rel16;
 	}
 
@@ -72,10 +71,9 @@ with : prime=17 & microMode=0 {  #COP1
 	}
 
 	# 0100 0101 0000 0011 iiii iiii iiii iiii
-	:bc1tl Rel16                     	is microMode=0 & copop=8 & copfct=3 & Rel16 {
-	    tmp:1 = fcsr[23,1];
+	:bc1tl Rel16                     	is copop=8 & copfct=3 & Rel16 {
+	    if (fcsr[23,1] == 0) goto inst_next;
 	    delayslot(1);
-	    if (tmp == 0) goto inst_next;
 	    goto Rel16;
 	}
 
@@ -106,30 +104,14 @@ with : prime=17 & microMode=0 {  #COP1
 	    fs_fcr = RTsrc:4;
 	}
 
-	# only defined for fcsr (31)
-	:clear fs_fcr             			is copop=6 & rt=0 & fs_fcr & fs=31 & bigfunct=0 {
-	    fs_fcr = 0;
-	}
-
-	:cvt.s.W fd, fs             		is ft=0 & fct=32 & fd & fs & format=0x14 {
+	:cvt.s.W fd, fs             		is microMode=0 & ft=0 & fct=32 & fd & fs & format=0x14 {
     	fd = int2float(fs);
 	}
 
 	# 0100 0110 0000 0000 ssss sddd dd10 0100
 	:cvt.w.S fd, fs             		is microMode=0 & ft=0 & fct=36 & fd & fs & format=0x10 {
-	    # Convert from single float source to 32-bit integer word, using the fcsr RM rounding mode bits
-	    bias:1 = fs[23,8];
-	    msb:1 = fs[31,1];
-
-	    if (bias > 0x9d) goto <clamp>;
+	    # PS2 COP1 always rounds down
 	    fd = trunc(fs);
-	    goto inst_next;
-	   <clamp>
-	    if (msb == 0) goto <neg>;
-	    fd = 0x7FFFFFFF;
-	    goto inst_next;
-	   <neg>
-		fd = 0x80000000;
 	}
 
 	# 0100 01ff ffft tttt ssss sddd dd00 0011
@@ -183,11 +165,6 @@ with : prime=17 & microMode=0 {  #COP1
 		fs = RT32src;
 	}
 
-	# 0100 0100 100t tttt dddd d000 0000 0000
-	:clear fs                 	is copop=4 & rt=0 & fs & bigfunct=0 {
-		fs = 0;
-	}
-
 	# 0100 01ff ffft tttt ssss sddd dd00 0010
 	:mul.S fd, fs, ft           		is microMode=0 & fct=2 & ft & fs & fd & format=0x10 {
 	    fd = fs f* ft;
@@ -226,10 +203,10 @@ with : prime=17 & microMode=0 {  #COP1
 }
 
 :lwc1 ft, OFF_BASE              		is microMode=0 & prime=49 & OFF_BASE & ft {
-    ft = *[ram]:4 OFF_BASE;
+    ft = *:4 OFF_BASE;
 }
 
 # 1110 01bb bbbt tttt iiii iiii iiii iiii
 :swc1 ft, OFF_BASE              		is microMode=0 & prime=57 & OFF_BASE & ft {
-    *[ram]:4 OFF_BASE = ft:4;
+    *:4 OFF_BASE = ft:4;
 }

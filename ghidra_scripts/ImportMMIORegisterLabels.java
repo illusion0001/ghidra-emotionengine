@@ -16,33 +16,33 @@ import ghidra.program.model.address.*;
 
 public class ImportMMIORegisterLabels extends GhidraScript {
 
-    public void run() throws Exception {
-        Namespace registerNamespace = getNamespace(null, "registers");
-        if(registerNamespace == null) {
-            registerNamespace = currentProgram.getSymbolTable().createNameSpace(
-                currentProgram.getGlobalNamespace(),
-                "registers",
-                SourceType.USER_DEFINED
-            );
-        }
-        
-        AddressSpace ram = currentProgram.getAddressFactory().getAddressSpace("ram");
-        Register[] registers = currentProgram.getLanguage().getRegisters();
-        for(Register register : registers) {
-            if(register.getAddressSpace() == ram) {
-                Symbol[] oldSymbols = currentProgram.getSymbolTable().getSymbols(register.getAddress());
-                for(Symbol symbol : oldSymbols) {
-                    symbol.delete();
-                }
-                
-                currentProgram.getSymbolTable().createLabel(
-                    register.getAddress(),
-                    register.getName(),
-                    registerNamespace,
-                    SourceType.USER_DEFINED
-                );
-            }
-        }
-    }
+	public void run() throws Exception {
+		Namespace registerNamespace = getNamespace(null, "registers");
+		if(registerNamespace == null) {
+			registerNamespace = currentProgram.getSymbolTable().createNameSpace(
+				currentProgram.getGlobalNamespace(),
+				"registers",
+				SourceType.USER_DEFINED
+			);
+		}
+		
+		AddressSpace ram = currentProgram.getAddressFactory().getAddressSpace("ram");
+		Register[] registers = currentProgram.getLanguage().getRegisters();
+		for(Register register : registers) {
+			if(register.getAddressSpace() == ram) {
+				Symbol[] oldSymbols = currentProgram.getSymbolTable().getSymbols(register.getAddress());
+				for(Symbol symbol : oldSymbols) {
+					symbol.delete();
+				}
+				
+				currentProgram.getSymbolTable().createLabel(
+					register.getAddress(),
+					register.getName(),
+					registerNamespace,
+					SourceType.USER_DEFINED
+				);
+			}
+		}
+	}
 
 }

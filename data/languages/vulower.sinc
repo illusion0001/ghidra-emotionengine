@@ -6,7 +6,6 @@ define pcodeop exp;
 
 :loi VI is microMode=1 & VI & vulop11_L=0x2FF & vucI_L=1 {
     *[register]:4 vuI = VI;
-    goto inst_next;
 }
 
 CF: is epsilon {tmp:3 = *[register]:3 &vuCF_32; export tmp;}
@@ -17,66 +16,66 @@ with : microMode=1 & cUpper=0 {
 
     with : cE=0 {
         :b Rel11    is Rel11 & vulop7=0x20 & vuis=0 & vuit=0 & vudest=0 [cUpper=1; globalset(inst_next, cUpper);] {
-            delayslot(3);
+            delayslot(9);
             goto Rel11;
         }
 
         :bal VUIT, Rel11    is vulop7=0x21 & Rel11 & vuis=0 & VUIT & vudest=0 [cUpper=1; globalset(inst_next, cUpper);] {
             VUIT = inst_start+16;
-            delayslot(3);
+            delayslot(9);
             call Rel11;
         }
 
         :jalr VUIT, VUIS is vudest & vusimm11 & vulop7=0x25 & VUIT & VUIS [cUpper=1; globalset(inst_next, cUpper);] {
             VUIT = inst_start+16;
-            delayslot(3);
+            delayslot(9);
             tmp:4 = $(BASE_CODE_ADDRESS) + zext(VUIS*8);
             call [tmp];
         }
 
         :jr VUIS is vudest & VUIT & vusimm11 & vulop7=0x24 & VUIS [cUpper=1; globalset(inst_next, cUpper);] {
-            delayslot(3);
+            delayslot(9);
             tmp:4 = $(BASE_CODE_ADDRESS) + zext(VUIS*8);
             goto [tmp];
         }
 
         :jr VUIS is vudest & VUIS & vusimm11 & vulop7=0x24 & vuis=15 [cUpper=1; globalset(inst_next, cUpper);] {
-            delayslot(3);
+            delayslot(9);
             return [VUIS];
         }
         :ibeq VUIT, VUIS, Rel11 is vudest=0 & vulop7=0x28 & VUIT & VUIS & Rel11 [cUpper=1; globalset(inst_next, cUpper);] {
             delayflag:1 = ( VUIS == VUIT );
-            delayslot( 1 );
+            delayslot(9);
             if delayflag goto Rel11;
         }
 
         :ibgez VUIS, Rel11 is vudest=0 & vuit=0 & vulop7=0x2f & VUIS & Rel11 [cUpper=1; globalset(inst_next, cUpper);] {
             delayflag:1 = ( VUIS s>= 0:2 );
-            delayslot( 1 );
+            delayslot(9);
             if delayflag goto Rel11;
         }
 
         :ibgtz VUIS, Rel11 is vudest=0 & vuit=0 & vulop7=0x2d & VUIS & Rel11 [cUpper=1; globalset(inst_next, cUpper);] {
             delayflag:1 = ( VUIS s> 0:2 );
-            delayslot( 1 );
+            delayslot(9);
             if delayflag goto Rel11;
         }
 
         :iblez VUIS, Rel11 is vudest=0 & vuit=0 & vulop7=0x2e & VUIS & Rel11 [cUpper=1; globalset(inst_next, cUpper);] {
             delayflag:1 = ( VUIS s<= 0:2 );
-            delayslot( 1 );
+            delayslot(9);
             if delayflag goto Rel11;
         }
 
         :ibltz VUIS, Rel11 is vudest=0 & vuit=0 & vulop7=0x2c & VUIS & Rel11 [cUpper=1; globalset(inst_next, cUpper);] {
             delayflag:1 = ( VUIS s< 0:2 );
-            delayslot( 1 );
+            delayslot(9);
             if delayflag goto Rel11;
         }
 
         :ibne VUIT, VUIS, Rel11 is vudest=0 & vulop7=0x29 & VUIT & VUIS & Rel11 [cUpper=1; globalset(inst_next, cUpper);] {
             delayflag:1 = ( VUIS != VUIT );
-            delayslot( 1 );
+            delayslot(9);
             if delayflag goto Rel11;
         }
 
@@ -111,7 +110,7 @@ with : microMode=1 & cUpper=0 {
             vuft = VULQ(dest, offset);
             VUIS = VUIS + 1;
         }
-        
+
         :sq^dest vufs, VU_OFF_BASE_IT is vulop7=0x1 & vufs & VU_OFF_BASE_IT & dest [cUpper=1; globalset(inst_next, cUpper);] {
             VUSQ(dest, $(BASE_DATA_ADDRESS)+VU_OFF_BASE_IT, vufs);
         }
@@ -351,4 +350,7 @@ with : microMode=1 & cUpper=0 {
 
     :waitq is vulop7=0x40 & vudest=0 & vuft=0 & vufs=0 & vulop11=0x3bf [cUpper=1; globalset(inst_next, cUpper);] {}
 
+    :loi immfloat_s is immfloat_s [cUpper=1; globalset(inst_next, cUpper);] {
+        *[register]:4 vuI = immfloat_s;
+    }
 }

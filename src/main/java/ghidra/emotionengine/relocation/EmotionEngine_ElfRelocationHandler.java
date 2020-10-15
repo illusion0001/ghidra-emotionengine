@@ -89,7 +89,7 @@ public class EmotionEngine_ElfRelocationHandler extends MIPS_ElfRelocationHandle
 				break;
 			case MIPS_ElfRelocationConstants.R_MIPS_HI16:
 			case MIPS_ElfRelocationConstants.R_MIPS_LO16:
-				super.relocate(elfRelocationContext, relocation, relocationAddress);
+				//super.relocate(elfRelocationContext, relocation, relocationAddress);
 				return;
 			case R_MIPS_MHI16:
 				if (elfRelocationContext.getElfHeader().e_type() == ET_IRX2) {

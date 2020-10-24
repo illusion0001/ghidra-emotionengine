@@ -1,12 +1,18 @@
 package ghidra.emotionengine;
 
+import java.util.Arrays;
+import java.util.List;
+
 import ghidra.app.util.bin.format.elf.*;
 import ghidra.app.util.bin.format.elf.extend.MIPS_ElfExtension;
 import ghidra.emotionengine.dvp.DvpOverlayTable;
 import ghidra.emotionengine.iop.IopModSection;
+import ghidra.emotionengine.mw.MwCatsSection;
 import ghidra.program.model.address.Address;
 import ghidra.program.model.listing.*;
 import ghidra.program.model.mem.Memory;
+import ghidra.program.model.mem.MemoryBlock;
+import ghidra.program.model.symbol.Symbol;
 import ghidra.util.classfinder.ExtensionPointProperties;
 import ghidra.util.exception.CancelledException;
 import ghidra.util.task.TaskMonitor;
@@ -57,59 +63,88 @@ public class EmotionEngine_ElfExtension extends MIPS_ElfExtension {
 		return "_EE";
 	}
 
-	/*
-	@Override
-	public boolean canHandle(ElfHeader elf) {
-		if (super.canHandle(elf)) {
-			return elf.e_type() == ET_IRX || elf.e_type() == ET_IRX2 || isEE(elf);
-		}
-		return false;
-	}*/
-
-	@SuppressWarnings("unused")
-	private boolean isEE(ElfHeader elf) {
-		return (elf.e_flags() & E_MIPS_MACH_5900) == E_MIPS_MACH_5900;
-	}
-
 	@Override
 	public boolean canHandle(ElfLoadHelper elfLoadHelper) {
 		return EmotionEngineUtil.isEmotionEngine(elfLoadHelper.getProgram());
 	}
 
 	@Override
-	public void processElf(ElfLoadHelper elfLoadHelper, TaskMonitor monitor)
+	public void processElf(ElfLoadHelper helper, TaskMonitor monitor)
 			throws CancelledException {
 
-		super.processElf(elfLoadHelper, monitor);
-		ElfHeader elf = elfLoadHelper.getElfHeader();
+		super.processElf(helper, monitor);
+		ElfHeader elf = helper.getElfHeader();
 		try {
-			createMirrorBlocks(elfLoadHelper);
+			createMirrorBlocks(helper);
 		} catch (Exception e) {
-			elfLoadHelper.getLog().appendException(e);
+			helper.log(e);
 		}
-		for (ElfSectionHeader sectionHeader : elf.getSections()) {
+		for (ElfSectionHeader shdr : elf.getSections()) {
 			monitor.checkCanceled();
 			EmotionEngineElfSection section;
-			switch (sectionHeader.getType()) {
+			switch (shdr.getType()) {
 				case SHT_MIPS_IOPMOD_VALUE:
-					section = new IopModSection(sectionHeader, elfLoadHelper);
+					section = new IopModSection(shdr, helper);
 					break;
 				case SHT_DVP_OVERLAY_TABLE_VALUE:
-					section = new DvpOverlayTable(sectionHeader, elfLoadHelper);
+					section = new DvpOverlayTable(shdr, helper);
 					break;
 				default:
 					section = null;
 					break;
 			}
-			if (section == null) {
-				continue;
-			}
 			try {
-				section.parse(monitor);
+				if (section == null) {
+					String name = shdr.getNameAsString();
+					if (name != null) {
+						if (name.equals("heap") && shdr.getSize() == 0) {
+							createHeapSection(helper, shdr);
+						} else if (name.contains(".mwcats")) {
+							MwCatsSection cats = new MwCatsSection(shdr, helper);
+							cats.parse(monitor);
+						}
+					}
+				} else {
+					section.parse(monitor);
+				}
 			} catch (Exception e) {
-				elfLoadHelper.log(e);
+				helper.log(e);
 			}
 		}
+	}
+	
+	private void createHeapSection(ElfLoadHelper helper, ElfSectionHeader shdr)
+			throws Exception {
+		Program program = helper.getProgram();
+		List<Symbol> symbols =
+			program.getSymbolTable().getSymbols("_gp", program.getGlobalNamespace());
+		if (symbols.isEmpty()) {
+			return;
+		}
+		Address end = helper.getDefaultAddress(shdr.getAddress());
+		Address start = getMaxAddress(helper);
+		long size = end.subtract(start) + 1;
+		Memory mem = program.getMemory();
+		MemoryBlock block = mem.createUninitializedBlock("heap", start, size, false);
+		block.setExecute(shdr.isExecutable());
+		block.setRead(true);
+		block.setWrite(true);
+		ProgramModule root = program.getListing().getDefaultRootModule();
+		if (root.getIndex("heap") == -1) {
+			ProgramFragment frag = root.createFragment("heap");
+			frag.move(start, end);
+		}
+	}
+	
+	private Address getMaxAddress(ElfLoadHelper helper) {
+		Program program = helper.getProgram();
+		return Arrays.stream(program.getMemory().getBlocks())
+			.filter(MemoryBlock::isLoaded)
+			.filter(MemoryBlock::isInitialized)
+			.map(MemoryBlock::getEnd)
+			.map(Address::next)
+			.max(Address::compareTo)
+			.orElse(null);
 	}
 
 	private static void createMirrorBlocks(ElfLoadHelper helper) throws Exception {

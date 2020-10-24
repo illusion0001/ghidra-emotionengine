@@ -280,7 +280,7 @@ public class EmotionEngineAddressAnalyzer extends ConstantPropagationAnalyzer {
 		if (addr != null) {
 			MemoryBlock block = program.getMemory().getBlock(addr);
 			if (block == null || !block.isExecute() || !block.isInitialized() ||
-				block.getName().equals("EXTERNAL")) {
+				block.getName().equals(MemoryBlock.EXTERNAL_BLOCK_NAME)) {
 				return addr;
 			}
 

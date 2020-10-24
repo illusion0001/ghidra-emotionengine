@@ -71,8 +71,6 @@ public class EmotionEngine_ElfRelocationHandler extends MIPS_ElfRelocationHandle
 		int newValue = 0;
 		int oldValue = memory.getInt(relocationAddress);
 		switch(relocation.getType()) {
-			case MIPS_ElfRelocationConstants.R_MIPS_NONE:
-				return;
 			case MIPS_ElfRelocationConstants.R_MIPS_16:
 				value = (oldValue << 16) >> 16;
 				value += base;
@@ -89,10 +87,6 @@ public class EmotionEngine_ElfRelocationHandler extends MIPS_ElfRelocationHandle
 				newValue = oldValue & 0xfc000000;
 				newValue |= (value << 4) >> 6;
 				break;
-			case MIPS_ElfRelocationConstants.R_MIPS_HI16:
-			case MIPS_ElfRelocationConstants.R_MIPS_LO16:
-				//super.relocate(elfRelocationContext, relocation, relocationAddress);
-				return;
 			case R_MIPS_MHI16:
 				if (elfRelocationContext.getElfHeader().e_type() == ET_IRX2) {
 					markAsError(program, relocationAddress, relocation.getType(),
@@ -221,6 +215,9 @@ public class EmotionEngine_ElfRelocationHandler extends MIPS_ElfRelocationHandle
 			default:
 				String msg = String.format("Unexpected relocation type %d", relocation.getType());
 				bMan.setBookmark(relocationAddress, BookmarkType.ERROR, BookmarkType.ERROR, msg);
+			case MIPS_ElfRelocationConstants.R_MIPS_NONE:
+			case MIPS_ElfRelocationConstants.R_MIPS_HI16:
+			case MIPS_ElfRelocationConstants.R_MIPS_LO16:
 			case MIPS_ElfRelocationConstants.R_MIPS_GPREL16:
 				return;
 		}

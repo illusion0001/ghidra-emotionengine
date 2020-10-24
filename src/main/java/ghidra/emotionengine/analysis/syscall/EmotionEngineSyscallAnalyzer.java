@@ -14,7 +14,7 @@ import ghidra.util.task.TaskMonitor;
 
 public final class EmotionEngineSyscallAnalyzer extends AbstractAnalyzer {
 
-	private static final String NAME = EmotionEngineSyscallAnalyzer.class.getSimpleName();
+	private static final String NAME = "Syscall Analyzer";
 	private static final String DESCRIPTION =
 		"Locates syscalls and applies the appropriate call fixup and function signature";
 

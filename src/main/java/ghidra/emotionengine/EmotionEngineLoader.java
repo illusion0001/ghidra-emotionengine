@@ -184,8 +184,8 @@ public class EmotionEngineLoader extends ElfLoader {
 				ExternalLocationIterator iter = manager.getExternalLocations(libName);
 				Iterable<ExternalLocation> locations = () -> iter;
 				List<ExternalLocation> locList = StreamSupport
-						.stream(locations.spliterator(), false)
-						.collect(Collectors.toList());
+					.stream(locations.spliterator(), false)
+					.collect(Collectors.toList());
 				if (!locList.isEmpty()) {
 					messageLog.appendMsg(String.format(EXTERNAL_FUNCTION_MESSAGE, libName));
 					monitor.initialize(locList.size());

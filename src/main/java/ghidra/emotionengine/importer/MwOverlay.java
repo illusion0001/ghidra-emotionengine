@@ -11,9 +11,10 @@ import ghidra.program.model.data.*;
 import ghidra.util.Msg;
 import ghidra.util.NumericUtilities;
 
-final class MwOverlay {
+import static ghidra.emotionengine.EmotionEngineUtil.MW_PATH;
 
-	private static final CategoryPath MW_PATH = new CategoryPath(CategoryPath.ROOT, "Metrowerks");
+final class MwOverlay {
+	
 	public static final DataType dataType = getDataType();
 
 	private final byte version;

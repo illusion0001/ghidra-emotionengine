@@ -1,5 +1,8 @@
 package ghidra.emotionengine.analysis;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import ghidra.app.services.AnalyzerType;
 import ghidra.app.util.importer.MessageLog;
 import ghidra.emotionengine.iop.IopModule;
@@ -13,40 +16,57 @@ import ghidra.program.model.symbol.ExternalManager;
 import ghidra.program.model.symbol.SourceType;
 import ghidra.program.model.symbol.SymbolUtilities;
 import ghidra.util.StringUtilities;
-import ghidra.util.bytesearch.*;
 import ghidra.util.exception.*;
 import ghidra.util.task.TaskMonitor;
-import ghidra.xml.XmlPullParser;
 
 public final class EmotionEngineIrxAnalyzer extends AbstractEmotionEngineAnalyzer {
 
-	private static final String NAME = EmotionEngineIrxAnalyzer.class.getSimpleName();
+	private static final int EXTENSION_LENGTH = 4;
+	private static final String NAME = "Irx Analyzer";
 	private static final String DESCRIPTION =
 		"Locates IRX module imports and adds them to the SymbolTree IMPORTS";
 
-	private static final DittedBitSequence IRX_SEQUENCE =
-		new DittedBitSequence("0x2E 01.01001 01.10010 01.11000");
-	private static final DittedBitSequence IMG_SEQUENCE =
-		new DittedBitSequence("0x2E 01.01001 01.01101 0.100111");
-
-	private Program program;
-	private MessageLog log;
-
 	public EmotionEngineIrxAnalyzer() {
 		super(NAME, DESCRIPTION, AnalyzerType.DATA_ANALYZER);
+	}
+	
+	@Override
+	public boolean canAnalyze(Program program) {
+		// disable for now
+		return false;
 	}
 
 	@Override
 	public boolean added(Program program, AddressSetView set, TaskMonitor monitor,
 			MessageLog log) throws CancelledException {
-		this.program = program;
-		this.log = log;
-		IrxMatchAction action = new IrxMatchAction();
-		MemoryBytePatternSearcher searcher = new MemoryBytePatternSearcher("Irx Module Searcher");
-		searcher.addPattern(action.getIrxPattern());
-		searcher.addPattern(action.getImgPattern());
-		searcher.search(program, set, monitor);
+		init(program, monitor, log);
+		List<Address> addresses = new ArrayList<>(findStrings(".img"));
+		addresses.addAll(findStrings(".IMG"));
+		addresses.addAll(findStrings(".irx"));
+		addresses.addAll(findStrings(".IRX"));
+		monitor.initialize(addresses.size());
+		monitor.setMessage("Adding module imports");
+		for (Address address : addresses) {
+			monitor.checkCanceled();
+			try {
+				handleImport(address);
+			} catch (Exception e) {
+				log.appendException(e);
+			}
+			monitor.incrementProgress(1);
+		}
 		return true;
+	}
+	
+	private void handleImport(Address address) throws Exception {
+		String module = getModuleName(address);
+		if (module.isBlank()) {
+			return;
+		}
+		if (!SymbolUtilities.containsInvalidChars(module)) {
+			// don't create a module for a log message
+			createExternalModule(module);
+		}
 	}
 
 	private String getModuleName(Address address) throws Exception {
@@ -61,7 +81,7 @@ public final class EmotionEngineIrxAnalyzer extends AbstractEmotionEngineAnalyze
 
 	private Data getStringData(Address address) throws Exception {
 		Listing listing = program.getListing();
-		Address end = address.add(IRX_SEQUENCE.getSize());
+		Address end = address.add(EXTENSION_LENGTH);
 		MemBuffer buf = new DumbMemBufferImpl(program.getMemory(), address);
 		int offset = 0;
 		while (true) {
@@ -94,38 +114,5 @@ public final class EmotionEngineIrxAnalyzer extends AbstractEmotionEngineAnalyze
 				throw new AssertException(e);
 			}
 		}
-	}
-
-	private final class IrxMatchAction implements MatchAction {
-
-		@Override
-		public void apply(Program program, Address addr, Match match) {
-			try {
-				String module = getModuleName(addr);
-				if (module.isBlank()) {
-					return;
-				}
-				if (!SymbolUtilities.containsInvalidChars(module)) {
-					// don't create a module for a log message
-					createExternalModule(module);
-				}
-			} catch (Exception e) {
-				log.appendException(e);
-			}
-		}
-
-		@Override
-		public void restoreXml(XmlPullParser parser) {
-			throw new UnsupportedOperationException();
-		}
-
-		Pattern getIrxPattern() {
-			return new Pattern(IRX_SEQUENCE, 0, new PostRule[0], new MatchAction[]{ this });
-		}
-
-		Pattern getImgPattern() {
-			return new Pattern(IMG_SEQUENCE, 0, new PostRule[0], new MatchAction[]{ this });
-		}
-
 	}
 }

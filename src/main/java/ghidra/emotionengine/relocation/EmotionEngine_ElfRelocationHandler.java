@@ -21,6 +21,8 @@ import ghidra.app.util.bin.format.elf.relocation.MIPS_ElfRelocationConstants;
 import ghidra.app.util.bin.format.elf.relocation.MIPS_ElfRelocationHandler;
 import ghidra.app.util.importer.MessageLog;
 import ghidra.program.model.address.*;
+import ghidra.program.model.listing.BookmarkManager;
+import ghidra.program.model.listing.BookmarkType;
 import ghidra.program.model.listing.Program;
 import ghidra.program.model.mem.*;
 import ghidra.util.classfinder.ExtensionPointProperties;
@@ -59,7 +61,7 @@ public class EmotionEngine_ElfRelocationHandler extends MIPS_ElfRelocationHandle
 		Program program = elfRelocationContext.getProgram();
 		Memory memory = program.getMemory();
 		MessageLog log = elfRelocationContext.getLog();
-
+		BookmarkManager bMan = program.getBookmarkManager();
 		ElfSymbol elfSymbol = elfRelocationContext.getSymbol(relocation.getSymbolIndex());
 
 		String symbolName = elfSymbol.getNameAsString();
@@ -217,7 +219,9 @@ public class EmotionEngine_ElfRelocationHandler extends MIPS_ElfRelocationHandle
 				newValue = (oldValue & ~0xf03ff) | value;
 				break;
 			default:
-				super.relocate(elfRelocationContext, relocation, relocationAddress);
+				String msg = String.format("Unexpected relocation type %d", relocation.getType());
+				bMan.setBookmark(relocationAddress, BookmarkType.ERROR, BookmarkType.ERROR, msg);
+			case MIPS_ElfRelocationConstants.R_MIPS_GPREL16:
 				return;
 		}
 

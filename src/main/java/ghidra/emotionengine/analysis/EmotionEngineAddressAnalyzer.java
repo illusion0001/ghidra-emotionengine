@@ -260,6 +260,239 @@ public class EmotionEngineAddressAnalyzer extends ConstantPropagationAnalyzer {
 		// follow all flows building up context
 		// use context to fill out addresses on certain instructions
 
+			private boolean mustStopNow = false; // if something discovered in processing, mustStop flag
+
+			@Override
+			public boolean evaluateContextBefore(VarnodeContext context, Instruction instr) {
+				return mustStopNow;
+			}
+
+			@Override
+			public boolean evaluateContext(VarnodeContext context, Instruction instr) {
+				if (markupDualInstructionOption) {
+					markupDualInstructions(context, instr);
+				}
+
+				// if ra is a constant and is set right after this, this is a call
+				// this was copylefted from the arm analyzer
+				Varnode raVal = context.getRegisterVarnodeValue(rareg);
+				if (raVal != null) {
+					if (raVal.isConstant()) {
+						long target = raVal.getAddress().getOffset();
+						Address addr = instr.getMaxAddress();
+						if (target == (addr.getOffset() + 1) && !instr.getFlowType().isCall()) {
+							instr.setFlowOverride(FlowOverride.CALL);
+							// need to trigger disassembly below! if not already
+							MipsExtDisassembly(program, instr, context, addr.add(1), monitor);
+
+							// need to trigger re-function creation!
+							Function f = program.getFunctionManager().getFunctionContaining(
+								instr.getMinAddress());
+
+							if (f != null) {
+								try {
+									CreateFunctionCmd.fixupFunctionBody(program, f, monitor);
+								}
+								catch (CancelledException e) {
+									return true;
+								}
+								//AutoAnalysisManager.getAnalysisManager(program).functionDefined(
+								//	func.getBody());
+							}
+						}
+					}
+				}
+
+				// check if the GP register is set
+				FlowType flowType = instr.getFlowType();
+				if (discoverGlobalGPSetting && (flowType.isCall() || flowType.isTerminal())) {
+					// check for GP set
+					RegisterValue registerValue = context.getRegisterValue(gp);
+					if (registerValue != null) {
+						BigInteger value = registerValue.getUnsignedValue();
+						long unsignedValue = value.longValue();
+						if (gp_assumption_value == null ||
+							!(unsignedValue == gp_assumption_value.getOffset())) {
+							synchronized (gp) {
+								Address gpRefAddr =
+									instr.getMinAddress().getNewAddress(unsignedValue);
+								setGPSymbol(program, gpRefAddr);
+
+								Address lastSetAddr = context.getLastSetLocation(gp, value);
+								Instruction lastSetInstr = instr;
+								if (lastSetAddr != null) {
+									Instruction instructionAt =
+										program.getListing().getInstructionContaining(lastSetAddr);
+									if (instructionAt != null) {
+										lastSetInstr = instructionAt;
+									}
+								}
+								symEval.makeReference(context, lastSetInstr, -1,
+									instr.getMinAddress().getAddressSpace().getSpaceID(),
+									unsignedValue, 1, RefType.DATA, PcodeOp.UNIMPLEMENTED, true,
+									monitor);
+								if (gp_assumption_value == null) {
+									program.getBookmarkManager().setBookmark(
+										lastSetInstr.getMinAddress(), BookmarkType.WARNING,
+										"GP Global Register Set",
+										"Global GP Register is set here.");
+								}
+								if (gp_assumption_value != null &&
+									!gp_assumption_value.equals(gpRefAddr)) {
+									gp_assumption_value = null;
+								}
+								else {
+									gp_assumption_value = gpRefAddr;
+								}
+							}
+						}
+					}
+				}
+				return mustStopNow;
+			}
+
+			private void markupDualInstructions(VarnodeContext context, Instruction instr) {
+				String mnemonic = instr.getMnemonicString();
+				if (targetLoadStore.contains(mnemonic)) {
+					Register reg = instr.getRegister(0);
+					if (reg != null) {
+						BigInteger val = context.getValue(reg, false);
+						if (val != null) {
+							long lval = val.longValue();
+							Address refAddr = instr.getMinAddress().getNewAddress(lval);
+							if ((lval > 4096 || lval < 0) && lval != 0xffff &&
+								program.getMemory().contains(refAddr)) {
+
+								int opCheck = 0;
+								if (instr.getOperandReferences(opCheck).length == 0) {
+									instr.addOperandReference(opCheck, refAddr, RefType.DATA,
+										SourceType.ANALYSIS);
+								}
+							}
+						}
+					}
+				}
+			}
+
+			@Override
+			public boolean evaluateReference(VarnodeContext context, Instruction instr, int pcodeop,
+					Address address, int size, RefType refType) {
+
+				Address addr = address;
+
+				if (!program.getMemory().contains(addr) && refType.isData()) {
+					// bail on an invalid address
+					return false;
+				}
+				if (instr.getMnemonicString().endsWith("lui")) {
+					return false;
+				}
+
+				if ((refType.isJump() || refType.isCall()) & refType.isComputed()) {
+					//if (refType.isJump() || refType.isCall()) {
+					addr = MipsExtDisassembly(program, instr, context, address, monitor);
+					//addr = flowISA(program, instr, context, address);
+					if (addr == null) {
+						addr = address;
+					}
+				}
+
+				// if this is a call, some processors use the register value
+				// used in the call for PIC calculations
+				if (refType.isCall()) {
+					// set the called function to have a constant value for this register
+					// WARNING: This might not always be the case, if called directly or with a different register
+					//          But then it won't matter, because the function won't depend on the registers value.
+					if (instr.getFlowType().isComputed()) {
+						Register reg = instr.getRegister(0);
+						if (reg != null && t9.equals(reg) && assumeT9EntryAddress) {
+							BigInteger val = context.getValue(reg, false);
+							if (val != null) {
+								try {
+									// clear the register, so it won't be set below this call.
+									//  if it is assumed to be set to the same value, it can lead
+									//   to incorrect re-use of the value (non-returning functions)
+									context.clearRegister(reg);
+									
+									// need to add the reference here, register operand will no longer have a value
+									instr.addOperandReference(0,  addr, refType, SourceType.ANALYSIS);
+									
+									// set the register value on the target address
+									ProgramContext progContext = program.getProgramContext();
+									if (progContext.getValue(reg, addr, false) == null) {
+										progContext.setValue(reg, addr, addr, val);
+										// if we do this, probably need to restart code analysis with function body,
+										AutoAnalysisManager amgr =
+											AutoAnalysisManager.getAnalysisManager(program);
+										amgr.codeDefined(new AddressSet(addr));
+									}
+								}
+								catch (ContextChangeException e) {
+									// ignore context change
+								}
+							}
+						}
+					}
+				}
+
+				return super.evaluateReference(context, instr, pcodeop, address, size, refType);
+			}
+
+			@Override
+			public boolean evaluateDestination(VarnodeContext context, Instruction instruction) {
+				FlowType flowtype = instruction.getFlowType();
+				if (!flowtype.isJump()) {
+					return false;
+				}
+
+				if (trySwitchTables) {
+					String mnemonic = instruction.getMnemonicString();
+					if (mnemonic.equals("jr")) {
+						fixJumpTable(program, instruction, monitor);
+					}
+				}
+
+				return false;
+			}
+
+			@Override
+			public Long unknownValue(VarnodeContext context, Instruction instruction,
+					Varnode node) {
+				if (assumeT9EntryAddress && node.isRegister() &&
+					context.getRegisterVarnode(t9).contains(node.getAddress())) {
+					// if get a T9 Register, need to stop evaluating
+					// if can't find the beginning of the function, then must stop and assume something else
+					// will pick it up.
+					if (func != null) {
+						Address funcAddr = func.getEntryPoint();
+						Long value = funcAddr.getOffset();
+						try {
+							ProgramContext progContext = program.getProgramContext();
+							// if T9 hasn't already been set
+							if (progContext.getValue(t9, funcAddr, false) == null) {
+								progContext.setRegisterValue(funcAddr, funcAddr,
+									new RegisterValue(t9, BigInteger.valueOf(value)));
+								// if we do this, need to restart code analysis with function body,
+								// since this is not ready.
+								AutoAnalysisManager amgr =
+									AutoAnalysisManager.getAnalysisManager(program);
+								coveredSet.add(func.getBody());
+								amgr.codeDefined(coveredSet);
+							}
+						}
+						catch (ContextChangeException e) {
+							throw new AssertException("Unexpected Exception", e);
+						}
+					}
+					else {
+						//  If there is no function, kick the can to an analyzer that waits for functions
+						//  to be created and sets the T9...
+					}
+					mustStopNow = true;
+				}
+				return null;
+			}
+		};
 
 		AddressSet resultSet = symEval.flowConstants(flowStart, null, eval, true, monitor);
 

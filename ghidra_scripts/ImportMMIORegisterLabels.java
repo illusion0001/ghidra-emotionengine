@@ -1,6 +1,8 @@
 // Create a label for each MMIO register in a namespace called "registers".
 //@category ghidra-emotionengine
 
+import java.util.List;
+
 import ghidra.app.script.GhidraScript;
 import ghidra.program.model.util.*;
 import ghidra.program.model.reloc.*;
@@ -16,6 +18,7 @@ import ghidra.program.model.address.*;
 
 public class ImportMMIORegisterLabels extends GhidraScript {
 
+<<<<<<< HEAD
 	public void run() throws Exception {
 		Namespace registerNamespace = getNamespace(null, "registers");
 		if(registerNamespace == null) {
@@ -44,5 +47,36 @@ public class ImportMMIORegisterLabels extends GhidraScript {
 			}
 		}
 	}
+=======
+    public void run() throws Exception {
+        Namespace registerNamespace = getNamespace(null, "registers");
+        if(registerNamespace == null) {
+            registerNamespace = currentProgram.getSymbolTable().createNameSpace(
+                currentProgram.getGlobalNamespace(),
+                "registers",
+                SourceType.USER_DEFINED
+            );
+        }
+        
+        AddressSpace ram = currentProgram.getAddressFactory().getAddressSpace("ram");
+        List<Register> registers = currentProgram.getLanguage().getRegisters();
+        for(Register register : registers) {
+			monitor.checkCanceled();
+            if(register.getAddressSpace() == ram) {
+                Symbol[] oldSymbols = currentProgram.getSymbolTable().getSymbols(register.getAddress());
+                for(Symbol symbol : oldSymbols) {
+                    symbol.delete();
+                }
+                
+                currentProgram.getSymbolTable().createLabel(
+                    register.getAddress(),
+                    register.getName(),
+                    registerNamespace,
+                    SourceType.USER_DEFINED
+                );
+            }
+        }
+    }
+>>>>>>> 33e0ba89d6f0ed0409e1aeb7075157b7e332e16e
 
 }

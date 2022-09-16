@@ -136,8 +136,8 @@ public class EmotionEngine_ElfRelocationHandler extends MIPS_ElfRelocationHandle
 			case R_MIPS_ADDEND:
 				// already accounted for
 				return;
-				case R_MIPS15_S3:
-				/* TODO
+			case R_MIPS15_S3:
+				/*
 					HOWTO (R_MIPS15_S3,           /* type 
 						3,                     /* rightshift 
 						2,                     /* size (0 = byte, 1 = short, 2 = long) 
@@ -156,7 +156,7 @@ public class EmotionEngine_ElfRelocationHandler extends MIPS_ElfRelocationHandle
 				newValue = (oldValue & ~0x001fffc0) | (value >> 3);
 				break;
 			case R_MIPS_DVP_11_PCREL:
-				/*  TODO
+				/*
 					HOWTO (R_MIPS_DVP_11_PCREL,   /* type 
 						3,                     /* rightshift 
 						2,                     /* size (0 = byte, 1 = short, 2 = long) 
@@ -175,7 +175,7 @@ public class EmotionEngine_ElfRelocationHandler extends MIPS_ElfRelocationHandle
 				newValue = (oldValue & ~0x7ff) | (value >> 3);
 				break;
 			case R_MIPS_DVP_11_S4:
-				/* TODO
+				/*
 					HOWTO (R_MIPS_DVP_11_S4,      /* type 
 						4,                     /* rightshift 
 						2,                     /* size (0 = byte, 1 = short, 2 = long) 
@@ -194,7 +194,7 @@ public class EmotionEngine_ElfRelocationHandler extends MIPS_ElfRelocationHandle
 				newValue = (oldValue & ~0x03ff) | (value >> 4);
 				break;
 			case R_MIPS_DVP_U15_S3:
-				/* TODO
+				/*
 					HOWTO (R_MIPS_DVP_U15_S3,     /* type 
 						3,                     /* rightshift 
 						2,                     /* size (0 = byte, 1 = short, 2 = long) 

@@ -8,8 +8,6 @@
         <property key="enableSharedReturnAnalysis" value="true"/>
         <property key="useNewFunctionStackAnalysis" value="true"/>
         <property key="parallelInstructionHelperClass" value="ghidra.emotionengine.VuInstructionHelper"/>
-        <property key="pcodeInjectLibraryClass" value="ghidra.emotionengine.PcodeInjectLibraryVu"/>
-        <property key="assemblyRating:r5900:LE:32:default" value="PLATINUM"/>
     </properties>
     <programcounter register="pc"/>
     <context_data>
@@ -31,8 +29,6 @@
         <register name="cUpper" hidden="true"/>
         <register name="cM" hidden="true"/>
         <register name="cE" hidden="true"/>
-        <register name="vuMAC_32" hidden="true"/>
-        <register name="vuStatus_32" hidden="true"/>
         <register name="fsa" rename="sa"/>
         <register name="vf0" vector_lane_sizes="4"/>
         <register name="vf1" vector_lane_sizes="4"/>

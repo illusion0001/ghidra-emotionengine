@@ -34,7 +34,8 @@ final class DemangledMetrowerksRtti extends DemangledMetrowerksSpecial {
 		PointerDataType tbase = new PointerDataType(VoidDataType.dataType);
 		struct.add(tname, "tname", null);
 		struct.add(tbase, "tbase", null);
-		struct.setToMachineAlignment();
+		struct.setToMachineAligned();
+		struct.setPackingEnabled(true);
 		return struct;
 	}
 }

@@ -49,7 +49,8 @@ public class MwCatsSection implements EmotionEngineElfSection {
 		struct.add(WordDataType.dataType, "version", null);
 		struct.add(WordDataType.dataType, "size", null);
 		struct.add(DWordDataType.dataType, "function", null);
-		struct.setToMachineAlignment();
+		struct.setToMachineAligned();
+		struct.setPackingEnabled(true);
 		return struct;
 	}
 	

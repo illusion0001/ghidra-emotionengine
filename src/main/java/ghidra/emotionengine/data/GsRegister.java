@@ -265,7 +265,7 @@ enum GsRegister {
 			struct.addBitField(uLong, 24, "pad8", null);
 			struct.addBitField(uLong, 8, "FIX", null);
 			struct.addBitField(uLong, 24, "pad40", null);
-			struct.setMinimumAlignment(LONG_SIZE);
+			struct.setExplicitMinimumAlignment(LONG_SIZE);
 			return struct;
 		} catch (InvalidDataTypeException e) {
 			Msg.error(GsRegister.class, e);
@@ -290,7 +290,7 @@ enum GsRegister {
 			struct.addBitField(uLong, 2, "pad54", null);
 			struct.addBitField(bitblt, 6, "DPSM", null);
 			struct.addBitField(uLong, 2, "pad62", null);
-			struct.setMinimumAlignment(LONG_SIZE);
+			struct.setExplicitMinimumAlignment(LONG_SIZE);
 			return struct;
 		} catch (InvalidDataTypeException e) {
 			Msg.error(GsRegister.class, e);
@@ -327,7 +327,7 @@ enum GsRegister {
 			struct.addBitField(uLong, 10, "MINV", null);
 			struct.addBitField(uLong, 10, "MAXV", null);
 			struct.addBitField(uLong, 20, "pad44", null);
-			struct.setMinimumAlignment(LONG_SIZE);
+			struct.setExplicitMinimumAlignment(LONG_SIZE);
 			return struct;
 		} catch (InvalidDataTypeException e) {
 			Msg.error(GsRegister.class, e);
@@ -341,7 +341,7 @@ enum GsRegister {
 		try {
 			struct.addBitField(uLong, 1, "CLAMP", null);
 			struct.addBitField(uLong, 63, "pad01", null);
-			struct.setMinimumAlignment(LONG_SIZE);
+			struct.setExplicitMinimumAlignment(LONG_SIZE);
 			return struct;
 		} catch (InvalidDataTypeException e) {
 			Msg.error(GsRegister.class, e);
@@ -388,7 +388,7 @@ enum GsRegister {
 			struct.addBitField(uLong, 1, "pad32", null);
 			struct.addBitField(uLong, 3, "DIMX33", null);
 			struct.addBitField(uLong, 1, "pad33", null);
-			struct.setMinimumAlignment(LONG_SIZE);
+			struct.setExplicitMinimumAlignment(LONG_SIZE);
 			return struct;
 		} catch (InvalidDataTypeException e) {
 			Msg.error(GsRegister.class, e);
@@ -402,7 +402,7 @@ enum GsRegister {
 		try {
 			struct.addBitField(uLong, 1, "DTHE", null);
 			struct.addBitField(uLong, 63, "pad01", null);
-			struct.setMinimumAlignment(LONG_SIZE);
+			struct.setExplicitMinimumAlignment(LONG_SIZE);
 			return struct;
 		} catch (InvalidDataTypeException e) {
 			Msg.error(GsRegister.class, e);
@@ -416,7 +416,7 @@ enum GsRegister {
 		try {
 			struct.addBitField(uLong, 1, "FBA", null);
 			struct.addBitField(uLong, 63, "pad01", null);
-			struct.setMinimumAlignment(LONG_SIZE);
+			struct.setExplicitMinimumAlignment(LONG_SIZE);
 			return struct;
 		} catch (InvalidDataTypeException e) {
 			Msg.error(GsRegister.class, e);
@@ -435,7 +435,7 @@ enum GsRegister {
 		try {
 			struct.addBitField(uLong, 56, "pad00", null);
 			struct.addBitField(uLong, 8, "F", null);
-			struct.setMinimumAlignment(LONG_SIZE);
+			struct.setExplicitMinimumAlignment(LONG_SIZE);
 			return struct;
 		} catch (InvalidDataTypeException e) {
 			Msg.error(GsRegister.class, e);
@@ -451,7 +451,7 @@ enum GsRegister {
 			struct.addBitField(uLong, 8, "FCG", null);
 			struct.addBitField(uLong, 8, "FCB", null);
 			struct.addBitField(uLong, 40, "pad24", null);
-			struct.setMinimumAlignment(LONG_SIZE);
+			struct.setExplicitMinimumAlignment(LONG_SIZE);
 			return struct;
 		} catch (InvalidDataTypeException e) {
 			Msg.error(GsRegister.class, e);
@@ -470,7 +470,7 @@ enum GsRegister {
 			struct.addBitField(uLong, 6, "PSM", null);
 			struct.addBitField(uLong, 2, "pad30", null);
 			struct.addBitField(uLong, 32, "FBMSK", null);
-			struct.setMinimumAlignment(LONG_SIZE);
+			struct.setExplicitMinimumAlignment(LONG_SIZE);
 			return struct;
 		} catch (InvalidDataTypeException e) {
 			Msg.error(GsRegister.class, e);
@@ -487,7 +487,7 @@ enum GsRegister {
 		StructureDataType struct = new StructureDataType("GsLabel", 0);
 		struct.add(UnsignedIntegerDataType.dataType, INT_SIZE, "ID", null);
 		struct.add(UnsignedIntegerDataType.dataType, INT_SIZE, "IDMSK", null);
-		struct.setMinimumAlignment(LONG_SIZE);
+		struct.setExplicitMinimumAlignment(LONG_SIZE);
 			return struct;
 	}
 	
@@ -502,7 +502,7 @@ enum GsRegister {
 			struct.addBitField(uLong, 14, "TBP3", null);
 			struct.addBitField(uLong, 6, "TBW3", null);
 			struct.addBitField(uLong, 4, "pad60", null);
-			struct.setMinimumAlignment(LONG_SIZE);
+			struct.setExplicitMinimumAlignment(LONG_SIZE);
 			return struct;
 		} catch (InvalidDataTypeException e) {
 			Msg.error(GsRegister.class, e);
@@ -521,7 +521,7 @@ enum GsRegister {
 			struct.addBitField(uLong, 14, "TBP6", null);
 			struct.addBitField(uLong, 6, "TBW6", null);
 			struct.addBitField(uLong, 4, "pad60", null);
-			struct.setMinimumAlignment(LONG_SIZE);
+			struct.setExplicitMinimumAlignment(LONG_SIZE);
 			return struct;
 		} catch (InvalidDataTypeException e) {
 			Msg.error(GsRegister.class, e);
@@ -535,7 +535,7 @@ enum GsRegister {
 		try {
 			struct.addBitField(uLong, 1, "PABE", null);
 			struct.addBitField(uLong, 63, "pad01", null);
-			struct.setMinimumAlignment(LONG_SIZE);
+			struct.setExplicitMinimumAlignment(LONG_SIZE);
 			return struct;
 		} catch (InvalidDataTypeException e) {
 			Msg.error(GsRegister.class, e);
@@ -557,7 +557,7 @@ enum GsRegister {
 			struct.addBitField(uLong, 1, "CTXT", null);
 			struct.addBitField(uLong, 1, "FIX", null);
 			struct.addBitField(uLong, 53, "pad11", null);
-			struct.setMinimumAlignment(LONG_SIZE);
+			struct.setExplicitMinimumAlignment(LONG_SIZE);
 			return struct;
 		} catch (InvalidDataTypeException e) {
 			Msg.error(GsRegister.class, e);
@@ -579,7 +579,7 @@ enum GsRegister {
 			struct.addBitField(uLong, 1, "CTXT", null);
 			struct.addBitField(uLong, 1, "FIX", null);
 			struct.addBitField(uLong, 53, "pad11", null);
-			struct.setMinimumAlignment(LONG_SIZE);
+			struct.setExplicitMinimumAlignment(LONG_SIZE);
 			return struct;
 		} catch (InvalidDataTypeException e) {
 			Msg.error(GsRegister.class, e);
@@ -593,7 +593,7 @@ enum GsRegister {
 		try {
 			struct.addBitField(uLong, 1, "AC", null);
 			struct.addBitField(uLong, 63, "pad01", null);
-			struct.setMinimumAlignment(LONG_SIZE);
+			struct.setExplicitMinimumAlignment(LONG_SIZE);
 			return struct;
 		} catch (InvalidDataTypeException e) {
 			Msg.error(GsRegister.class, e);
@@ -610,7 +610,7 @@ enum GsRegister {
 			struct.addBitField(uInt, 8, "B", null);
 			struct.addBitField(uInt, 8, "A", null);
 			struct.add(FloatDataType.dataType, INT_SIZE, "Q", null);
-			struct.setMinimumAlignment(LONG_SIZE);
+			struct.setExplicitMinimumAlignment(LONG_SIZE);
 			return struct;
 		} catch (InvalidDataTypeException e) {
 			Msg.error(GsRegister.class, e);
@@ -624,7 +624,7 @@ enum GsRegister {
 		try {
 			struct.addBitField(uLong, 2, "MSK", null);
 			struct.addBitField(uLong, 62, "pad02", null);
-			struct.setMinimumAlignment(LONG_SIZE);
+			struct.setExplicitMinimumAlignment(LONG_SIZE);
 			return struct;
 		} catch (InvalidDataTypeException e) {
 			Msg.error(GsRegister.class, e);
@@ -644,7 +644,7 @@ enum GsRegister {
 			struct.addBitField(uLong, 5, "pad43", null);
 			struct.addBitField(uLong, 11, "SCAY1", null);
 			struct.addBitField(uLong, 5, "pad59", null);
-			struct.setMinimumAlignment(LONG_SIZE);
+			struct.setExplicitMinimumAlignment(LONG_SIZE);
 			return struct;
 		} catch (InvalidDataTypeException e) {
 			Msg.error(GsRegister.class, e);
@@ -656,7 +656,7 @@ enum GsRegister {
 		StructureDataType struct = new StructureDataType("GsSignal", 0);
 		struct.add(UnsignedIntegerDataType.dataType, INT_SIZE, "ID", null);
 		struct.add(UnsignedIntegerDataType.dataType, INT_SIZE, "IDMSK", null);
-		struct.setMinimumAlignment(LONG_SIZE);
+		struct.setExplicitMinimumAlignment(LONG_SIZE);
 			return struct;
 	}
 	
@@ -664,7 +664,7 @@ enum GsRegister {
 		StructureDataType struct = new StructureDataType("GsST", 0);
 		struct.add(FloatDataType.dataType, INT_SIZE, "S", null);
 		struct.add(FloatDataType.dataType, INT_SIZE, "T", null);
-		struct.setMinimumAlignment(LONG_SIZE);
+		struct.setExplicitMinimumAlignment(LONG_SIZE);
 			return struct;
 	}
 	
@@ -681,7 +681,7 @@ enum GsRegister {
 			struct.addBitField(uLong, 1, "ZTE", null);
 			struct.addBitField(uLong, 2, "ZTST", null);
 			struct.addBitField(uLong, 45, "pad19", null);
-			struct.setMinimumAlignment(LONG_SIZE);
+			struct.setExplicitMinimumAlignment(LONG_SIZE);
 			return struct;
 		} catch (InvalidDataTypeException e) {
 			Msg.error(GsRegister.class, e);
@@ -705,7 +705,7 @@ enum GsRegister {
 			struct.addBitField(uLong, 1, "CSM", null);
 			struct.addBitField(uLong, 5, "CSA", null);
 			struct.addBitField(uLong, 3, "CLD", null);
-			struct.setMinimumAlignment(LONG_SIZE);
+			struct.setExplicitMinimumAlignment(LONG_SIZE);
 			return struct;
 		} catch (InvalidDataTypeException e) {
 			Msg.error(GsRegister.class, e);
@@ -728,7 +728,7 @@ enum GsRegister {
 			struct.addBitField(uLong, 11, "pad21", null);
 			struct.addBitField(uLong, 12, "K", null);
 			struct.addBitField(uLong, 20, "pad44", null);
-			struct.setMinimumAlignment(LONG_SIZE);
+			struct.setExplicitMinimumAlignment(LONG_SIZE);
 			return struct;
 		} catch (InvalidDataTypeException e) {
 			Msg.error(GsRegister.class, e);
@@ -748,7 +748,7 @@ enum GsRegister {
 			struct.addBitField(uLong, 1, "CSM", null);
 			struct.addBitField(uLong, 5, "CSA", null);
 			struct.addBitField(uLong, 3, "CLD", null);
-			struct.setMinimumAlignment(LONG_SIZE);
+			struct.setExplicitMinimumAlignment(LONG_SIZE);
 			return struct;
 		} catch (InvalidDataTypeException e) {
 			Msg.error(GsRegister.class, e);
@@ -766,7 +766,7 @@ enum GsRegister {
 			struct.addBitField(uLong, 16, "pad16", null);
 			struct.addBitField(uLong, 8, "TA1", null);
 			struct.addBitField(uLong, 24, "pad40", null);
-			struct.setMinimumAlignment(LONG_SIZE);
+			struct.setExplicitMinimumAlignment(LONG_SIZE);
 			return struct;
 		} catch (InvalidDataTypeException e) {
 			Msg.error(GsRegister.class, e);
@@ -782,7 +782,7 @@ enum GsRegister {
 			struct.addBitField(uLong, 6, "COU", null);
 			struct.addBitField(uLong, 10, "COV", null);
 			struct.addBitField(uLong, 42, "pad22", null);
-			struct.setMinimumAlignment(LONG_SIZE);
+			struct.setExplicitMinimumAlignment(LONG_SIZE);
 			return struct;
 		} catch (InvalidDataTypeException e) {
 			Msg.error(GsRegister.class, e);
@@ -801,7 +801,7 @@ enum GsRegister {
 		try {
 			struct.addBitField(uLong, 2, "XDR", null);
 			struct.addBitField(uLong, 62, "pad02", null);
-			struct.setMinimumAlignment(LONG_SIZE);
+			struct.setExplicitMinimumAlignment(LONG_SIZE);
 			return struct;
 		} catch (InvalidDataTypeException e) {
 			Msg.error(GsRegister.class, e);
@@ -822,7 +822,7 @@ enum GsRegister {
 			struct.addBitField(uLong, 11, "DSAY", null);
 			struct.addBitField(uLong, 2, "DIR", null);
 			struct.addBitField(uLong, 3, "pad61", null);
-			struct.setMinimumAlignment(LONG_SIZE);
+			struct.setExplicitMinimumAlignment(LONG_SIZE);
 			return struct;
 		} catch (InvalidDataTypeException e) {
 			Msg.error(GsRegister.class, e);
@@ -838,7 +838,7 @@ enum GsRegister {
 			struct.addBitField(uLong, 20, "pad12", null);
 			struct.addBitField(uLong, 12, "RRH", null);
 			struct.addBitField(uLong, 20, "pad44", null);
-			struct.setMinimumAlignment(LONG_SIZE);
+			struct.setExplicitMinimumAlignment(LONG_SIZE);
 			return struct;
 		} catch (InvalidDataTypeException e) {
 			Msg.error(GsRegister.class, e);
@@ -854,7 +854,7 @@ enum GsRegister {
 			struct.addBitField(uLong, 2, "pad14", null);
 			struct.addBitField(uLong, 14, "V", null);
 			struct.addBitField(uLong, 34, "pad30", null);
-			struct.setMinimumAlignment(LONG_SIZE);
+			struct.setExplicitMinimumAlignment(LONG_SIZE);
 			return struct;
 		} catch (InvalidDataTypeException e) {
 			Msg.error(GsRegister.class, e);
@@ -870,7 +870,7 @@ enum GsRegister {
 			struct.addBitField(uLong, 16, "pad16", null);
 			struct.addBitField(uLong, 16, "OFY", null);
 			struct.addBitField(uLong, 16, "pad48", null);
-			struct.setMinimumAlignment(LONG_SIZE);
+			struct.setExplicitMinimumAlignment(LONG_SIZE);
 			return struct;
 		} catch (InvalidDataTypeException e) {
 			Msg.error(GsRegister.class, e);
@@ -885,7 +885,7 @@ enum GsRegister {
 			struct.addBitField(uLong, 16, "X", null);
 			struct.addBitField(uLong, 16, "Y", null);
 			struct.addBitField(uLong, 32, "Z", null);
-			struct.setMinimumAlignment(LONG_SIZE);
+			struct.setExplicitMinimumAlignment(LONG_SIZE);
 			return struct;
 		} catch (InvalidDataTypeException e) {
 			Msg.error(GsRegister.class, e);
@@ -901,7 +901,7 @@ enum GsRegister {
 			struct.addBitField(uLong, 16, "Y", null);
 			struct.addBitField(uLong, 24, "Z", null);
 			struct.addBitField(uLong, 8, "F", null);
-			struct.setMinimumAlignment(LONG_SIZE);
+			struct.setExplicitMinimumAlignment(LONG_SIZE);
 			return struct;
 		} catch (InvalidDataTypeException e) {
 			Msg.error(GsRegister.class, e);
@@ -919,7 +919,7 @@ enum GsRegister {
 			struct.addBitField(uLong, 4, "pad28", null);
 			struct.addBitField(uLong, 1, "ZMSK", null);
 			struct.addBitField(uLong, 31, "pad33", null);
-			struct.setMinimumAlignment(LONG_SIZE);
+			struct.setExplicitMinimumAlignment(LONG_SIZE);
 			return struct;
 		} catch (InvalidDataTypeException e) {
 			Msg.error(GsRegister.class, e);

@@ -31,7 +31,7 @@ public final class IopModSection implements EmotionEngineElfSection {
 		Structure struct = getIopModHeader();
 		String name;
 		try {
-			name = reader.readTerminatedString(header.getOffset() + struct.getLength(), '\0');
+			name = reader.readAsciiString(header.getOffset() + struct.getLength());
 		} catch (IOException e) {
 			elf.log(e);
 			name = "";

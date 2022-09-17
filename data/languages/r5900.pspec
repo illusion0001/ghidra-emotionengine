@@ -19,10 +19,6 @@
             <set name="cE" val="0" description="vu E bit"/>
             <set name="cUpper" val="0" description="vu1 upper instruction flag"/>
         </context_set>
-        <tracked_set space="register">
-            <set name="vuMAC_32" val="0"/>
-            <set name="vuStatus_32" val="0"/>
-        </tracked_set>
     </context_data>
     <register_data>
         <register name="microMode" hidden="true"/>

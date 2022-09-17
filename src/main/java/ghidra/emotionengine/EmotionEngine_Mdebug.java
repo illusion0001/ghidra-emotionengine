@@ -140,7 +140,8 @@ public class EmotionEngine_Mdebug {
         }
         struct.add(DWORD, "cbLineOffset", "byte offset from header for this file ln's");
         struct.add(DWORD, "cbLine", "size of lines for this file");
-        struct.setToMachineAlignment();
+		struct.setToMachineAligned();
+		struct.setPackingEnabled(true);
         return struct;
     }
 
@@ -178,7 +179,8 @@ public class EmotionEngine_Mdebug {
         } catch (InvalidDataTypeException e) {
             Msg.error(EmotionEngine_Mdebug.class, e);
         }
-        struct.setToMachineAlignment();
+		struct.setToMachineAligned();
+		struct.setPackingEnabled(true);
         return struct;
     }
 
@@ -210,7 +212,8 @@ public class EmotionEngine_Mdebug {
         } catch (InvalidDataTypeException e) {
             Msg.error(EmotionEngine_Mdebug.class, e);
         }
-        struct.setToMachineAlignment();
+		struct.setToMachineAligned();
+		struct.setPackingEnabled(true);
         return struct;
     }
 
@@ -226,7 +229,8 @@ public class EmotionEngine_Mdebug {
         }
         struct.add(WORD, "ifd", "where the iss and index fields point into");
         struct.add(getSymExt(), "asym", "symbol for the external");
-        struct.setToMachineAlignment();
+		struct.setToMachineAligned();
+		struct.setPackingEnabled(true);
         return struct;
     }
 
@@ -245,7 +249,8 @@ public class EmotionEngine_Mdebug {
         } catch (InvalidDataTypeException e) {
             Msg.error(EmotionEngine_Mdebug.class, e);
         }
-        struct.setToMachineAlignment();
+		struct.setToMachineAligned();
+		struct.setPackingEnabled(true);
         return struct;
     }
 
@@ -257,7 +262,8 @@ public class EmotionEngine_Mdebug {
         } catch (InvalidDataTypeException e) {
             Msg.error(EmotionEngine_Mdebug.class, e);
         }
-        struct.setToMachineAlignment();
+		struct.setToMachineAligned();
+		struct.setPackingEnabled(true);
         return struct;
     }
 
@@ -291,7 +297,8 @@ public class EmotionEngine_Mdebug {
         }
         struct.add(getRndxExt(), "rndx", "points to a symbol or opt entry");
         struct.add(DWORD, "offset", "relative offset this occured");
-        struct.setToMachineAlignment();
+		struct.setToMachineAligned();
+		struct.setPackingEnabled(true);
         return struct;
     }
 

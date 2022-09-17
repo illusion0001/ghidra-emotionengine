@@ -325,7 +325,7 @@ public class GifPacketDataType extends DynamicDataType implements Resource {
 		DataType uLong = getU64();
 		DataType regDescriptor = getRegisterDescriptor();
 		try {
-			struct.setMinimumAlignment(LONG_SIZE);
+			struct.setExplicitMinimumAlignment(LONG_SIZE);
 			struct.addBitField(uLong, 15, "NLOOP", null);
 			struct.addBitField(BooleanDataType.dataType, 1, "EOP", null);
 			struct.addBitField(uLong, 16, "pad16", null);
@@ -480,6 +480,11 @@ public class GifPacketDataType extends DynamicDataType implements Resource {
 				return new ImageIcon(image, "<GifPacket-Image>");
 			}
 			return new ImageIcon(data, "<GifPacket-Image>");
+		}
+
+		@Override
+		public String getImageFileType() {
+			return "";
 		}
 
 	}

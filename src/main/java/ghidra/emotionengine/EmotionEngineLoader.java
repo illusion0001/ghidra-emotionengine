@@ -31,11 +31,11 @@ import ghidra.program.model.mem.MemoryBlock;
 import ghidra.program.model.symbol.*;
 import ghidra.program.model.util.PropertyMapManager;
 import ghidra.program.util.ProgramMemoryUtil;
+import ghidra.util.Msg;
 import ghidra.util.exception.AssertException;
 import ghidra.util.exception.CancelledException;
 import ghidra.util.exception.DuplicateNameException;
 import ghidra.util.task.TaskMonitor;
-import generic.continues.RethrowContinuesFactory;
 
 public class EmotionEngineLoader extends ElfLoader {
 
@@ -96,7 +96,7 @@ public class EmotionEngineLoader extends ElfLoader {
 		List<LoadSpec> loadSpecs = new ArrayList<>();
 
 		try {
-			ElfHeader elf = ElfHeader.createElfHeader(RethrowContinuesFactory.INSTANCE, provider);
+			ElfHeader elf = new ElfHeader(provider, (String s) -> Msg.info(this, s));
 			List<QueryResult> results =
 				QueryOpinionService.query(getName(), elf.getMachineName(), elf.getFlags());
 			for (QueryResult result : results) {

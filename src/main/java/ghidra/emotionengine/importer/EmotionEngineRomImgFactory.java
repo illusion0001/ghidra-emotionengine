@@ -1,37 +1,30 @@
 package ghidra.emotionengine.importer;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.ByteBuffer;
+import java.util.Set;
 
+import ghidra.app.util.bin.BinaryReader;
 import ghidra.app.util.bin.ByteProvider;
 import ghidra.formats.gfilesystem.FSRL;
 import ghidra.formats.gfilesystem.FSRLRoot;
 import ghidra.formats.gfilesystem.FSUtilities;
 import ghidra.formats.gfilesystem.FileSystemService;
-import ghidra.formats.gfilesystem.factory.GFileSystemFactoryFull;
-import ghidra.formats.gfilesystem.factory.GFileSystemProbeBytesOnly;
-import ghidra.formats.gfilesystem.factory.GFileSystemProbeWithFile;
+import ghidra.formats.gfilesystem.GFileSystem;
+import ghidra.formats.gfilesystem.factory.GFileSystemFactoryByteProvider;
+import ghidra.formats.gfilesystem.factory.GFileSystemProbeByteProvider;
 import ghidra.util.exception.CancelledException;
 import ghidra.util.task.TaskMonitor;
 
 import static ghidra.emotionengine.importer.EmotionEngineRomImgFileSystem.MAX_HEADER_OFFSET;
 
 public class EmotionEngineRomImgFactory
-	implements GFileSystemFactoryFull<EmotionEngineRomImgFileSystem>,
-	GFileSystemProbeBytesOnly, GFileSystemProbeWithFile {
+		implements GFileSystemFactoryByteProvider<EmotionEngineRomImgFileSystem>,
+		GFileSystemProbeByteProvider {
 
-	private static final String EXTENSION = ".img";
-	private static final String[] HEADER_NAMES = new String[] { "RESET", "ROMDIR", "EXTINFO" };
+	private static final Set<String> EXTENSION = Set.of(".bin", ".img");
+	private static final String[] HEADER_NAMES = new String[] {"RESET", "ROMDIR", "EXTINFO"};
 
 	private static final int BLOCK_SIZE = 0x10;
-
-	@Override
-	public int getBytesRequired() {
-		return MAX_HEADER_OFFSET;
-	}
 
 	protected static String getNullTerminatedString(byte[] bytes) {
 		for (int i = 0; i < bytes.length; i++) {
@@ -42,68 +35,61 @@ public class EmotionEngineRomImgFactory
 		return new String(bytes);
 	}
 
-	protected static int getHeaderOffset(byte[] bytes) {
-		byte[] header = HEADER_NAMES[0].getBytes();
-		MainLoop:
-		for (int i = 0; i < MAX_HEADER_OFFSET && i < bytes.length; i += BLOCK_SIZE) {
-			if (bytes[i] == header[0]) {
-				for (int j = 1; j < header.length; j++) {
-					if (bytes[i+j] != header[j]) {
-						continue MainLoop;
-					}
+	protected static int getHeaderOffset(ByteProvider byteProvider) throws IOException {
+		BinaryReader reader = new BinaryReader(byteProvider, false);
+		return getHeaderOffset(reader);
+	}
+	
+	protected static int getHeaderOffset(BinaryReader reader) throws IOException {
+		for (long i = reader.getPointerIndex(); i < MAX_HEADER_OFFSET; i += BLOCK_SIZE) {
+			reader.setPointerIndex(i);
+			if (reader.peekNextByte() == 'R') {
+				if (reader.readNextAsciiString().equals(HEADER_NAMES[0])) {
+					return (int) i;
 				}
-				return i;
 			}
 		}
 		return -1;
 	}
 
-	@Override
-	public boolean probeStartBytes(FSRL containerFSRL, byte[] startBytes) {
-		int offset = getHeaderOffset(startBytes);
-		if (offset > -1) {
-			byte[] block = new byte[0x10];
-			ByteBuffer buf = ByteBuffer.wrap(startBytes, offset, block.length*3);
-			Boolean result = null;
-			for (String name : HEADER_NAMES) {
-				buf.get(block);
-				String fName = getNullTerminatedString(block);
-				if (result == null) {
-					result = name.equals(fName);
-				} else {
-					result &= name.equals(fName);
-				}
+	public boolean probeStartBytes(BinaryReader reader) throws IOException {
+		int offset = getHeaderOffset(reader);
+		if (offset == -1) {
+			return false;
+		}
+		reader.setPointerIndex(offset);
+		for (String header : HEADER_NAMES) {
+			if (!reader.readNextAsciiString().equals(header)) {
+				return false;
 			}
-			return result;
+			offset += BLOCK_SIZE;
+			reader.setPointerIndex(offset);
+		}
+		return true;
+	}
+
+	@Override
+	public GFileSystem create(FSRLRoot targetFSRL, ByteProvider byteProvider, FileSystemService fsService,
+			TaskMonitor monitor) throws IOException, CancelledException {
+		EmotionEngineRomImgFileSystem fs = new EmotionEngineRomImgFileSystem(targetFSRL, byteProvider);
+		fs.mount(monitor);
+		return fs;
+	}
+
+	@Override
+	public boolean probe(ByteProvider byteProvider, FileSystemService fsService, TaskMonitor monitor)
+			throws IOException, CancelledException {
+		FSRL containerFSRL = byteProvider.getFSRL();
+		if (containerFSRL == null) {
+			return false;
+		}
+		String filename = containerFSRL.getName();
+		String ext = FSUtilities.getExtension(filename, 1);
+		if (ext != null && EXTENSION.contains(ext.toLowerCase())) {
+			BinaryReader reader = new BinaryReader(byteProvider, false);
+			return probeStartBytes(reader);
 		}
 		return false;
-	}
-
-	@Override
-	public EmotionEngineRomImgFileSystem create(FSRL containerFSRL, FSRLRoot targetFSRL,
-		ByteProvider byteProvider, File containerFile, FileSystemService fsService,
-		TaskMonitor monitor) throws IOException, CancelledException {
-			EmotionEngineRomImgFileSystem fs =
-				new EmotionEngineRomImgFileSystem(
-					containerFile, targetFSRL, byteProvider);
-			fs.mount(monitor);
-			return fs;
-	}
-
-	@Override
-	public boolean probe(FSRL containerFSRL, File containerFile, FileSystemService fsService,
-		TaskMonitor monitor) throws IOException, CancelledException {
-			String filename = containerFSRL.getName();
-			String ext = FSUtilities.getExtension(filename, 1);
-			if (ext != null && EXTENSION.equals(ext.toLowerCase())) {
-				try (InputStream is = new FileInputStream(containerFile)) {
-					byte[] startBytes = new byte[MAX_HEADER_OFFSET];
-					if (is.read(startBytes) == startBytes.length) {
-						return probeStartBytes(null, startBytes);
-					}
-				}
-			}
-			return false;
 	}
 			
 }

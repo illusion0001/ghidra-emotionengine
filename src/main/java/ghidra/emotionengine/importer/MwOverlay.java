@@ -42,7 +42,7 @@ final class MwOverlay {
 		this.bssSize = reader.readNextInt();
 		this.staticInitStart = reader.readNextInt();
 		this.staticInitEnd = reader.readNextInt();
-		this.name = reader.readNextNullTerminatedAsciiString();
+		this.name = reader.readNextAsciiString();
 	}
 
 	static MwOverlay get(ByteProvider provider) {
